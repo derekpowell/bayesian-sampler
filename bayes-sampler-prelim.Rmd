@@ -1,0 +1,143 @@
+---
+title: "Bayesian sampler working"
+output: html_notebook
+---
+
+Analyses of the Bayesian sampler data
+
+```{r}
+library(tidyverse)
+library(purrr)
+```
+
+
+```{r}
+## load all data for experiment 1
+df_exp1 <- map_dfr(
+  paste0("osfstorage-archive/Experiment 1/", list.files("osfstorage-archive/Experiment 1/")), 
+  read_csv,
+  col_types=cols()
+  )
+
+
+## load all data for experiment 2
+df_exp2 <- map_dfr(
+  paste0("osfstorage-archive/Experiment 2/", list.files("osfstorage-archive/Experiment 2/")), 
+  read_csv,
+  col_types=cols()
+  )
+
+# sanity check both data
+length(unique(df_exp1$ID)) # should be 59 Ps
+length(unique(df_exp2$ID)) # should be 84 Ps
+
+
+```
+
+# Plotting figure 6 (partial)
+
+Quick sanity-check: let's recreate the top half of figure 6. Looks like things are all as expected.
+
+```{r}
+df_exp2 %>% 
+  filter(block==1) %>% 
+  # filter(ID==1, block==2,)
+  mutate(
+    category = case_when(
+      grepl("(windy|cloudy)", querydetail) ~ "{windy, cloudy}",
+      grepl("(cold|rainy)", querydetail) ~ "{cold, rainy}",
+      TRUE ~ "other"
+  ) 
+  ) %>% 
+    filter(category!="other") %>% 
+  mutate(querytype = ordered(querytype,
+                             levels = c(
+                               "A",
+                                "B",
+                                "notA",
+                                "notB",
+                                "AandB",
+                                "notAandB",
+                                "AandnotB",
+                                "notAandnotB",
+                                "AorB",
+                                "notAorB",
+                                "AornotB",
+                                "notAornotB",
+                                "AgB",
+                                "notAgB",
+                                "AgnotB",
+                                "notAgnotB",
+                               "BgA",
+                                "notBgA",
+                                "BgnotA",
+                                "notBgnotA"
+                             ))) %>% 
+  group_by(querytype, category) %>% 
+  mutate(estimate = estimate/100) %>% 
+  summarize(
+    M = mean(estimate),
+    se = sd(estimate)/sqrt(n())
+  ) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=querytype, y=M, ymin=M-se, ymax=M+se)) +
+  geom_bar(stat="identity", position="dodge", width = .5, fill="grey50") +
+  geom_errorbar(width=.1) +
+  facet_wrap(~category, ncol=1) +
+  theme_bw(base_size=14) +
+  theme(
+    panel.grid=element_blank(),
+    axis.text.x=element_text(angle=45, hjust=1)
+    ) +
+  ylim(0,1)
+```
+
+bayesian sampler model is written in equation 15 as:
+
+$$E[P_{BS}(A)] = P(A)\frac{N}{N + 2\beta} + \frac{\beta}{N+2\beta}$$
+
+Which we should expect would be Beta distributed, given that it is itself a probability. This has the nice form of a linear regression equation, except that none of the terms in this model are actually observed! The big thing that's missing is $P(A)$. The authors' solution is to treat these as free parameters / unobserved latent variables, but to fix them with a constraint that e.g. in a 4-term conditional probability table the probabilities must sum to one, so there are only 3 degrees of freedom.
+
+I think I can use a simplex variable in Stan to accomplish this.
+
+Meanwhile the PT+N model has a bunch of different equations depending on the type of probability query. For a simple marginal probability it is (per equation 10):
+
+$$E[P_{PT+N}(A)] = (1-2d)P(A)+d$$
+Which is likewise a nice linear form but without any variables directly observed. The other equations are given in equations 11-13.
+
+
+```{r}
+# Bayesian sampler model
+
+# for a single person, avg across blocks:
+# prior on N
+# prior on beta
+# prior on N' and beta' (for conjunction and disjunction)
+# uninformative prior on unobserved true probabilities (simplex)
+
+# for hierarchical model with many Ps, avg across blocks:
+# group-level prior for N, beta, N', beta'
+# no hierarchical structure for prior on unobserved true probabilities
+
+# for hierarchical model with many Ps, individual trials:
+# share observations across blocks, replace formula 
+
+# the actual psychological model is that the sampling can differ each time tho
+# so that doesn't seem quite right?
+```
+
+
+## Simulating data
+
+First I'll need to simulate some data. I'll start simulating for one participant, and I'll try to use the format of the final data as much as I can so things translate.
+
+```{r}
+# do that
+
+# then fit one real participant
+
+# then expand to hierarchical version
+
+# then fit it all!
+```
+
