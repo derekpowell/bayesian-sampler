@@ -1,3 +1,6 @@
+# mac junk
+.DS_Store
+
 # History files
 .Rhistory
 .Rapp.history
@@ -37,3 +40,9 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# original data files not owned by me
+/osfstorage-archive/
+
+# outputs
+*.nb.html
