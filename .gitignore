@@ -46,3 +46,6 @@ vignettes/*.pdf
 
 # outputs
 *.nb.html
+
+# jupyter crap
+.ipynb_checkpoints/

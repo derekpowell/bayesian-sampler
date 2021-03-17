@@ -8,6 +8,7 @@ Analyses of the Bayesian sampler data
 ```{r}
 library(tidyverse)
 library(purrr)
+library(rstan)
 ```
 
 
@@ -40,7 +41,8 @@ Quick sanity-check: let's recreate the top half of figure 6. Looks like things a
 
 ```{r}
 df_exp2 %>% 
-  filter(block==1) %>% 
+  group_by(ID, querydetail, querytype) %>% 
+  summarize(estimate=mean(estimate)) %>% 
   # filter(ID==1, block==2,)
   mutate(
     category = case_when(
@@ -80,7 +82,7 @@ df_exp2 %>%
     se = sd(estimate)/sqrt(n())
   ) %>% 
   ungroup() %>% 
-  ggplot(aes(x=querytype, y=M, ymin=M-se, ymax=M+se)) +
+  ggplot(aes(x=querytype, y=M, ymin=M-se*2, ymax=M+se*2)) +
   geom_bar(stat="identity", position="dodge", width = .5, fill="grey50") +
   geom_errorbar(width=.1) +
   facet_wrap(~category, ncol=1) +
@@ -91,19 +93,240 @@ df_exp2 %>%
     ) +
   ylim(0,1)
 ```
+# The Bayesian sampler model in Stan
 
-bayesian sampler model is written in equation 15 as:
+Bayesian sampler model is written in equation 15 as:
 
 $$E[P_{BS}(A)] = P(A)\frac{N}{N + 2\beta} + \frac{\beta}{N+2\beta}$$
+Which we should expect would be Beta distributed, given that it is itself a probability. This has the nice form of a linear regression equation, except that none of the terms in this model are actually observed! The big thing that's missing is $P(A)$. The authors' solution is to treat these as free parameters / unobserved latent variables, but to fix them with a constraint that e.g. in a 4-term conditional probability table the probabilities must sum to one, so there are only 3 degrees of freedom. (I think I can use a simplex variable in Stan to accomplish this.)
 
-Which we should expect would be Beta distributed, given that it is itself a probability. This has the nice form of a linear regression equation, except that none of the terms in this model are actually observed! The big thing that's missing is $P(A)$. The authors' solution is to treat these as free parameters / unobserved latent variables, but to fix them with a constraint that e.g. in a 4-term conditional probability table the probabilities must sum to one, so there are only 3 degrees of freedom.
 
-I think I can use a simplex variable in Stan to accomplish this.
+The actual observation is:
 
-Meanwhile the PT+N model has a bunch of different equations depending on the type of probability query. For a simple marginal probability it is (per equation 10):
+$$P_{BS}(A) = prop(A)\frac{N}{N + 2\beta} + \frac{\beta}{N+2\beta}$$
+Where $prop(A)$ is the proportion of N samples that were A in the mental simulation. 
+
+To implement in a bayesian way we should go back to the original beta model:
+
+$$P_{BS}(A) \sim Beta(\beta + S(A), \beta+F(A))$$
+Which we can rewrite as:
+
+$$P_{BS}(A) \sim Beta(\beta + \lambda(A)N, \beta+(1-\lambda(A))N)$$
+Where $\lambda(A)$ is the proportion of successes in the mental simulation and is a function of the true underlying model probability, $p(A)$ 
+
+$$\lambda(A) \sim Beta(p(A)*N, (1-p(A))*N)$$
+To which we assign a uniform prior (or the multidimensional dirichlet equivalent):
+$$p(A) \sim Beta(1,1)$$
+They aren't looking to make an actual statistical model of the responses, so they essentially make use o the fact that the expectation of $\lambda(A)$ is $p(A)$, to ignore this bit when they are just trying to estimate the expectation. 
+
+This model might not sample well, as N and $\beta$ are not uniquely identifiable. But let's try anyhow.
+
+```{r}
+# first, code to create condition codes. This will be a pain :(
+
+df_test <- df_exp2 %>% 
+  group_by(ID, querytype, querydetail) %>% 
+  summarize(estimate=mean(estimate)) %>%
+  filter(ID==103) %>%
+  # filter(ID==4, block==3) %>% 
+  filter(grepl("(windy|cloudy)", querydetail)) %>% 
+  # filter(querytype %in% c("AandB","AandnotB","notAandB","notAandnotB")) %>%
+  ungroup() %>% 
+  mutate(
+    dummy = map(querytype, ~case_when(
+      .x == "AandB" ~ list(1,0,0,0),
+      .x == "AandnotB" ~ list(0,1,0,0),
+      .x == "notAandB" ~ list(0,0,1,0),
+      .x == "notAandnotB" ~ list(0,0,0,1),
+      .x == "A" ~ list(1,1,0,0),
+      .x == "B" ~ list(1,0,1,0),
+      .x == "notA" ~ list(0,0,1,1),
+      .x == "notB" ~ list(0,1,0,1),
+      TRUE ~ list(0,0,0,0)
+    )
+  )
+  ) %>% 
+  filter(!grepl("g",querytype))
+
+df_sim <- df_test %>% 
+  mutate(
+    AandBp = .3,
+    AandnotBp = .1,
+    notAandBp = .2,
+    notAandnotBp = .4,
+    subj_p = pmap_dbl(list(AandBp, AandnotBp, notAandBp, notAandnotBp, dummy), ~AandBp*dummy[[1]])
+  )
+
+standata <- list(y = df_test$estimate, x = df_test$dummy, N = nrow(df_test), k = 4)
+```
+
+
+```{stan output.var="model"}
+// psuedostancode
+data {
+  int<lower=0> N;
+  int<lower=0> K;
+  vector[N] x[K];
+  vector[N] y
+  vector[K] alpha;
+}
+parameters {
+  
+  real beta;
+  real<lower=0,upper=1> Nsamp;
+  real p;
+  simplex[K] theta[N];
+}
+model {
+  beta ~ cauchy(0, 1); // prior on beta, constrain positive
+  Nsamp ~ cauchy(0, 5); // prior on N, constrain positive
+  for (n in 1:N) {
+    theta[n] ~ dirichlet(alpha);
+    p = theta[n]*x; // later add code to get condition combinations etc.
+  }
+  
+  lambda ~ beta(p*Nsamp, (1-p)*Nsamp);
+  y_hat ~ beta(beta + lambda*Nsamp, beta + (1-lambda)*Nsamp); // does not account for any other kinds of error
+}
+
+```
+
+
+
+
+# other diagnostics and stuff
+
+I'm not sure how to implement the PT+N model in this fashion. For simple events, the bayesian sampler essentially collapses into the PT+N model (eq. 10):
 
 $$E[P_{PT+N}(A)] = (1-2d)P(A)+d$$
-Which is likewise a nice linear form but without any variables directly observed. The other equations are given in equations 11-13.
+where $d = \frac{\beta}{N+2\beta} $.
+
+The two models diverge only for conditional probabilities, $P(A|B)$. The Bayesian sampler treats these just like any other probability. The PT+N model posits a two-stage estimation algorithm with noise at both stages. It produces a somewhat nastier looking equation (13) that is a generalization of the basic equation (simplifies down to it when p(B)=1).
+
+But accounting for individual-level noise will work differently.
+
+## Simulating data
+
+First I'll need to simulate some data. I'll start simulating for one participant, and I'll try to use the format of the final data as much as I can so things translate.
+
+```{r}
+## what does the sampler do to probabilities?
+
+bayesian_sampler <- function(p,N,B){
+  p*(N/(N+2*B)) + B/(N+2*B)
+}
+
+inv_bayesian_sampler <- function(est,N,B){
+  (est - B/(N+2*B))/(N/(N+2*B))
+}
+
+x <- c(.77,.67,.5,.49)
+
+norm_x <- x/sum(x)
+bayesian_sampler(x, 10, 2) # median values
+inv_bayesian_sampler(bayesian_sampler(x, 10, 2), 10, 2) # median values
+
+sum(bayesian_sampler(c(.25,.25,.25,.25), 1, 100)) # extreme
+
+```
+
+There's really no way to get the kinds of raw responses participants are giving just via the bayesian sampler distortions. For instance, the sum of the BS estimates will never be over 2, but you can observe cases where that's true in the data. You also get cases where probabilities for one cell are over .5 and all sum to near 2 or above. An unbiased beta prior will always push estimates toward .5, so it can't explain these cases. Here's one example:
+
+```{r}
+# looking at the real data
+
+df_exp2 %>% 
+  group_by(ID, querytype, querydetail) %>% 
+  summarize(estimate=mean(estimate)) %>%
+  filter(ID==103) %>%
+  # filter(ID==4, block==3) %>% 
+  filter(grepl("(windy|cloudy)", querydetail)) %>% 
+  filter(querytype %in% c("AandB","AandnotB","notAandB","notAandnotB")) %>%
+  # filter(querytype %in% c("A","notA")) %>% 
+  select(querytype, estimate)
+```
+
+Of course we could just normalize both according to their direct contrasts (e.g. A and ~A). If we do that the esimates from the joint distribution estimates are only modestly correlated with the marginal estimates (r ~ .3 to .5). 
+
+
+```{r message=FALSE}
+df_exp2 %>% 
+  group_by(ID, querytype, querydetail) %>% 
+  summarize(estimate=mean(estimate)/100) %>%
+  # filter(ID==1) %>%
+  # filter(ID==4, block==3) %>% 
+  filter(grepl("(windy|cloudy)", querydetail)) %>%
+  select(-querydetail) %>% 
+  spread(querytype,estimate) %>% 
+  mutate(base1 = AandB + AandnotB + notAandB + notAandnotB) %>% 
+  mutate(base2 = notA + A) %>%
+  mutate(base3 = notB + B) %>%
+  mutate_at(vars(-ID, -base1, base2, base3, -A, -B, -notA, -notB), ~./base1) %>% 
+  mutate_at(vars(A, notA), ~./base2) %>% 
+  mutate_at(vars(B, notB), ~./base3) %>% 
+  mutate(
+    est_A = AandB + AandnotB, 
+    est_B = AandB + notAandB, 
+    est_notA = notAandB + notAandnotB,
+    est_notB = AandnotB + notAandnotB
+  ) %>% 
+  ungroup() %>% 
+  select(A, B, notA, notB, est_A, est_B, est_notA, est_notB) %>% 
+  cor() %>% 
+  round(3)
+```
+
+So the participant-level estimates are pretty messy. The Bayesian sampler model is really only able to generate accurate predictions at the population level. But I want to measure at the participant level!
+
+A lot of Ps are saying that the conjunction AandB is more probable than either A or B?  Over half it looks like. Say what you will about all the other things, there's really no story of probabilities that says this is an acceptable pattern of responses. A similar things is observed for A or B, where about half of the time the disjunction is rated less probable than one of its disjuncts. 
+
+On p7 the PT+N model gets this by augmenting the model to say that conjunction/disjunction probabilities are noisier, which pushes them toward .50. This could explain the conjunction fallacy, but only when the subjective probability of the is below .50, in which case it will be pushed toward .50. But we can see equally many cases where the observed estimate is above .50, which would suggest the subjective conjunction probability is even higher! 
+
+```{r}
+df_exp2 %>% 
+  group_by(ID, querytype, querydetail) %>% 
+  summarize(estimate=mean(estimate)) %>%
+  # filter(ID==103) %>%
+  # filter(ID==4, block==3) %>% 
+  filter(grepl("(windy|cloudy)", querydetail)) %>% 
+  filter(querytype %in% c("A","B", "AandB","AandnotB","notAandB","notAandnotB", "AorB")) %>%
+  # filter(querytype %in% c("A","notA")) %>% 
+  select(querytype, estimate) %>% 
+  spread(querytype, estimate) %>% 
+  mutate(
+    minAB = map2_dbl(A, B, ~min(.x,.y)),
+    maxAB = map2_dbl(A, B, ~max(.x,.y))
+    ) %>% 
+  ggplot(aes(x=minAB, y = AandB)) + 
+  geom_point() +
+  geom_abline(slope=1,intercept=0) +
+  geom_vline(xintercept=50, linetype="dashed") +
+  theme_bw()
+```
+
+Ok so that seems bad but it's just more affirmation that this is not a model of individual probability ratings, but only population averages. The individual ratings are still perturbed by substantial noise that could make them do all kinds of things.
+
+But it seems like the __amount of error__ at the individual level should be related to the sampling/noise properties. If my estimate is based only on a handful of samples, I'll give more extreme values that might deviate from the expectation more. So the sampling/noise process induces both a population-level bias and individual trial/block-level variance. Seems like that individual variance should be part of what motivates the model. But at the same time it doesn't really fly to just essentially downweight some participants b/c their responses are noisier. Or does it? Would also create trouble for the conjunction/disjunction trials b/c they would effectively contribute less to fit.
+
+```{r}
+# do that, can create a coding system to compute
+# A = AandB + AandnotB
+# AorB = AandB + AandnotB + notAandB + 0*notAandnotB
+# AgB = AandB + AandnotB / (AandB + notAandB )
+
+## like so ...
+# x = (c1*p_j1 + c2*p_j2 + c3*p_j3 + c4*p_j4)/(g1*p_j1 + g2*p_j2 + g3*p_j3 + g4*p_j4)
+
+# and can be turned into a matrix operation later
+
+# x = (cvec*pvec)*(gvec*pvec)^-1
+
+# then fit one real participant
+
+# then expand to hierarchical version
+
+# then fit it all!
+```
 
 
 ```{r}
@@ -114,6 +337,22 @@ Which is likewise a nice linear form but without any variables directly observed
 # prior on beta
 # prior on N' and beta' (for conjunction and disjunction)
 # uninformative prior on unobserved true probabilities (simplex)
+
+# parameters {
+# simplex[K] theta[N];
+# ...
+# }
+# model {
+#   beta ~ halfnormal(0,1) // prior on beta, constrain positive
+#   N ~ cauchy(0, 5) // prior on N, constrain positive
+#   k ~ cauchy(0, 5) // prior on kappa constant, constrain to be positive
+#   theta ~ dirichlet(something) // latent probabilities, possibly need a loop N times
+#   x = // computed from theta[i] and trial data or matrix mult
+#   d = beta/(N+2*beta)
+#   mu = (1-2*d)*x + d
+#   y ~ beta(mu*k, (1-mu)*k);
+#   ...
+# }
 
 # for hierarchical model with many Ps, avg across blocks:
 # group-level prior for N, beta, N', beta'
@@ -127,17 +366,4 @@ Which is likewise a nice linear form but without any variables directly observed
 ```
 
 
-## Simulating data
-
-First I'll need to simulate some data. I'll start simulating for one participant, and I'll try to use the format of the final data as much as I can so things translate.
-
-```{r}
-# do that
-
-# then fit one real participant
-
-# then expand to hierarchical version
-
-# then fit it all!
-```
-
+This is making me wonder if you actually do need to do nested inference if you want to get meaningful individual-level predictions. 
