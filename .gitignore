@@ -1,5 +1,6 @@
 # mac junk
 .DS_Store
+.osfcli.config
 
 # History files
 .Rhistory
@@ -49,3 +50,4 @@ vignettes/*.pdf
 
 # jupyter crap
 .ipynb_checkpoints/
+__pycache__/
