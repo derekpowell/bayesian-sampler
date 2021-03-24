@@ -104,20 +104,26 @@ Which we should expect would be Beta distributed, given that it is itself a prob
 The actual observation is:
 
 $$P_{BS}(A) = prop(A)\frac{N}{N + 2\beta} + \frac{\beta}{N+2\beta}$$
-Where $prop(A)$ is the proportion of N samples that were A in the mental simulation. 
+Where $prop(A)$ is the proportion of N samples that were A in the mental simulation for the query. The expectation of that proportion is the "true" subjective probability as encoded in their mental model.
 
 To implement in a bayesian way we should go back to the original beta model:
 
 $$P_{BS}(A) \sim Beta(\beta + S(A), \beta+F(A))$$
 Which we can rewrite as:
 
-$$P_{BS}(A) \sim Beta(\beta + \lambda(A)N, \beta+(1-\lambda(A))N)$$
-Where $\lambda(A)$ is the proportion of successes in the mental simulation and is a function of the true underlying model probability, $p(A)$ 
+$$P_{BS}(A) \sim Beta(\beta + \pi(A)N, \beta+(1-\pi(A))N)$$
+ok but in our regression
 
-$$\lambda(A) \sim Beta(p(A)*N, (1-p(A))*N)$$
+$$ y_A = E[P_{BS}(A)] $$
+
+
+Where $\pi(A)$ is the proportion of successes in a single run of the mental simulation and is a function of the true underlying model probability, $p(A)$ 
+
+$$\pi(A) \sim Beta(p(A)*N, (1-p(A))*N)$$
+
 To which we assign a uniform prior (or the multidimensional dirichlet equivalent):
 $$p(A) \sim Beta(1,1)$$
-They aren't looking to make an actual statistical model of the responses, so they essentially make use o the fact that the expectation of $\lambda(A)$ is $p(A)$, to ignore this bit when they are just trying to estimate the expectation. 
+They aren't looking to make an actual statistical model of the responses, so they essentially make use of the fact that the expectation of $\pi(A)$ is $p(A)$, to ignore this bit when they are just trying to estimate the expectation. Later in Appendix E they claim the models are "discrete", which I'm not sure I understand. I guess they are saying that the model is really very literal about people reporting the mean of their distributions. The Bayesian sampler theory also seems to assume that the simulation is run only once and those same results are then used to by the participant to answer a series of questions. If there's only one set of samples drawn then there won't be any way to estimate $p(A)$ except as $E[p(A)] = E[\pi(A)]=\pi(A)$. But that doesn't mean there isn't that extra bit of noise there statistically speaking--actually I am very on the fence about this. Not sure who is right.
 
 This model might not sample well, as N and $\beta$ are not uniquely identifiable. But let's try anyhow.
 
@@ -297,12 +303,13 @@ df_exp2 %>%
     minAB = map2_dbl(A, B, ~min(.x,.y)),
     maxAB = map2_dbl(A, B, ~max(.x,.y))
     ) %>% 
-  ggplot(aes(x=minAB, y = AandB)) + 
+  ggplot(aes(x=A, y = AorB)) + 
   geom_point() +
   geom_abline(slope=1,intercept=0) +
   geom_vline(xintercept=50, linetype="dashed") +
   theme_bw()
 ```
+Looks like people do better for disjunction than conjunction.
 
 Ok so that seems bad but it's just more affirmation that this is not a model of individual probability ratings, but only population averages. The individual ratings are still perturbed by substantial noise that could make them do all kinds of things.
 
