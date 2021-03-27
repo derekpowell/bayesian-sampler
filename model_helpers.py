@@ -4,34 +4,92 @@ import numpy as np
 
 ### ------ Data processing
 
-def load_query_avg_data():
+def load_raw_data(x=1):
     import glob
-    df = pd.concat([pd.read_csv(f) for f in glob.glob('osfstorage-archive/Experiment 2/*.csv')], ignore_index = True)
+    df = pd.concat([pd.read_csv(f) for f in glob.glob('osfstorage-archive/Experiment {}/*.csv'.format(x))], ignore_index = True)
 
     original_ids = list(np.unique(df.ID))
     fix_id_dict = {original_ids[i]:i for i in range(0, len(original_ids))}
 
-    df = (df >> 
-         filter_by(~X.querydetail.str.contains("warm|snowy")) >>
-          mutate(estimate = X.estimate/100.) >>
-          group_by(X.ID, X.querytype, X.querydetail) >>
-          summarize(estimate = np.mean(X.estimate)) >>
-          mutate(coldrainy = X.querydetail.str.contains("cold|rainy").astype("int")) >>
-          mutate(estimate = X.estimate.replace({0:.01, 1:.99})) >>
-#           mutate(conjdisj_trial = X.querytype.apply(is_conjdisj)) >>
-          mutate(ID = X.ID.apply(lambda x: fix_id_dict[x])) >>
-          ungroup()
+#     df = (df >> 
+#           mutate(estimate = X.estimate/100.) >>
+#           mutate(ID = X.ID.apply(lambda x: fix_id_dict[x]))
+#          )
+    df = (df.assign(estimate = df.estimate/100., ID=df.ID.apply(lambda x: fix_id_dict[x]))
          )
     
     return df
 
+
+def load_data_exp1():
+    df = load_raw_data(1)
+    df["condition"] = np.select([df.querydetail.str.contains("icy|frosty")],[0], default=0)
+
+    return df
+
+
+def load_data_exp2():
+    df = load_raw_data(2)
+    
+    df["condition"] = np.select(
+    [
+        df.querydetail.str.contains("windy|cloudy"), 
+        df.querydetail.str.contains("cold|rainy"),
+        df.querydetail.str.contains("warm|snowy")
+
+    ], 
+    [
+        0,
+        1,
+        2
+    ], 
+    default=0 )
+
+    return df
+
+def load_query_avg_data_exp2():
+
+    df = (load_data_exp2()
+          .groupby(["ID","condition","querytype","querydetail"], as_index=False)
+          .agg({"estimate":"mean"})
+          .assign(estimate = lambda x: x.estimate.replace({0:.01, 1:.99}))
+         )
+    
+    return df
+
+def load_query_avg_data_exp1():
+
+    df = (load_data_exp1()
+          .groupby(["ID", "condition", "querytype", "querydetail"], as_index=False)
+          .agg({"estimate":"mean"})
+          .assign(estimate = lambda x: x.estimate.replace({0:.01, 1:.99}))
+         )
+    
+    return df
+
+
+def load_query_avg_data_all():
+    # this won't work well for model fitting b/c different numbers of conditions
+    # will break my manual indexing
+    df1 = load_query_avg_data_exp1().assign(exp=1)
+    df2 = load_query_avg_data_exp2().assign(exp=2)
+    
+    df = pd.concat([df1, df2.assign(ID=df2["ID"]+5000)], ignore_index=True) # bit of a kludge
+    
+    original_ids = list(np.unique(df.ID))
+    fix_id_dict = {original_ids[i]:i for i in range(0, len(original_ids))}
+    
+    df = df.assign(ID = df.ID.apply(lambda x: fix_id_dict[x]))
+    
+    return df
+    
 
 def make_model_data(data):
 
     X_data = {
         "trial": data.querytype,
         "subj": jnp.array(list(data.ID)),
-        "cond": jnp.array(list(data.coldrainy), dtype="int32"),
+        "cond": jnp.array(list(data.condition), dtype="int32"),
     }
 
     y_data = jnp.array(data.estimate.to_numpy())
@@ -111,85 +169,9 @@ def sim_bayesian_sampler(trial_types, n_participants, n_blocks, params):
     return sim_data
 
 
-# def sim_sampling(p, beta, N, k):
-
-#     p_bs = p * N / (N + 2.*beta) + beta/(N + 2.*beta)
-# #     return np.random.normal(p_bs, k)
-#     return np.random.beta(p_bs*k, (1-p_bs)*k)
-
-
-# def dm_probs(trial_data, theta, n_obs):
-
-#     ## compute implied subj. probability from latent theta and trial type
-#     ## this is a vectorized solution: https://bit.ly/2P6mMcD
-#     p = jnp.ones(0)
-#     for i in range(0, n_obs):
-#         temp = trial_funcs[trial_data[i]](theta)
-#         p = jnp.concatenate( (p, jnp.array([temp])), 0)
-
-#     return p
-
-
-
 def make_thetas(n):
     return [np.random.dirichlet(jnp.ones(4)) for _ in range(0,n)]
 
-# def create_response_vec(trials, thetas, beta, N, k):
-#     all_responses = jnp.ones(0)
-#     for i in range(0, n_participants):
-#         theta = thetas[i]
-
-#         probs = dm_probs(trials, theta, len(trials))
-#         responses = sim_sampling(probs, beta=beta, N=N, k=k)
-#         all_responses = jnp.concatenate((all_responses, responses))
-#     return all_responses
-
-
-# def sim_sampling2(p, beta, N, sigma):
-#     pi = np.random.beta(p*N, (1-p)*N)
-#     p_bs = pi * N / (N + 2.*beta) + beta/(N + 2.*beta)
-#     return np.random.normal(p_bs, sigma)
-
-
-# def create_response_vec(trials, thetas, beta, N, k):
-#     all_responses = jnp.ones(0)
-#     for i in range(0, n_participants):
-#         theta = thetas[i]
-
-#         probs = dm_probs(trials, theta, len(trials))
-#         responses = sim_sampling(probs, beta=beta, N=N, k =k)
-#         all_responses = jnp.concatenate((all_responses, responses))
-#     return all_responses
-
-
-# def create_response_vec2(trials, thetas, beta, N, sigma):
-#     all_responses = jnp.ones(0)
-#     for i in range(0, n_participants):
-#         theta = thetas[i]
-
-#         probs = dm_probs(trials, theta, len(trials))
-#         responses = sim_sampling2(probs, beta=beta, N=N, sigma=sigma)
-#         all_responses = jnp.concatenate((all_responses, responses))
-#     return all_responses
-
-
-# def create_response_vec_complex(trials, thetas, beta, N_base, N_prime, k):
-#     # for the "complex" version of the model
-#     all_responses = jnp.ones(0)
-    
-#     N_delta = N_prime - N_base
-#     Ns = {1:N_prime, 0:N_base}
-    
-#     for i in range(0, n_participants):
-#         theta = thetas[i]
-
-#         probs = dm_probs(trials, theta, len(trials))
-#         conj_disj = [is_conjdisj(i) for i in trials]
-#         N = jnp.array([Ns[i] for i in conj_disj])
-#         responses = sim_sampling(probs, beta=beta, N=N, k=k)
-#         all_responses = jnp.concatenate((all_responses, responses))
-        
-#     return all_responses
 
 #### ---- model construction / design matrix construction
 
@@ -280,7 +262,6 @@ pA_vecs = dict({
     "notBgnotA": jnp.array([0.,1.,0.,1.])
 })
 
-
 ### ------ Arviz
 
 def make_arviz_data(mcmc, model, data):
@@ -298,3 +279,34 @@ def make_arviz_data(mcmc, model, data):
         prior = prior,
         posterior_predictive = posterior_predictive
     )
+
+
+### ---- plotting
+
+
+def plot_model_preds(orig_data, model_data):
+    from matplotlib import pyplot as plt
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    axes[0].set_xlim(0,1)
+    axes[1].set_xlim(0,1)
+    axes[0].set_ylim(0,1)
+    axes[1].set_ylim(0,1)
+    axes[0].set_aspect(1)
+    axes[1].set_aspect(1)
+#     fig.suptitle('Model')
+
+    d = orig_data
+    d["preds"] = model_data.posterior_predictive.mean(dim=['chain', 'draw']).yhat
+    print("Participant mean response corr = ", np.round(np.corrcoef(d.estimate, d.preds)[0,1],3))
+    sns.scatterplot(ax = axes[0], x = d.preds, y = d.estimate)
+
+    trial_df = (d
+                .groupby(["querytype", "querydetail"])
+                .agg({"preds":"mean", "estimate":"mean"})
+               )
+    print("Query-level corr", np.round(np.corrcoef(trial_df.estimate, trial_df.preds)[0,1],3))
+    sns.scatterplot(ax = axes[1], x = trial_df.preds, y = trial_df.estimate)
+    az.plot_ppc(ax=axes[2], data=model_data, data_pairs={"yhat":"yhat"},num_pp_samples=500)
+    axes[0].set_title("Avg. participant-level responses")    
+    axes[1].set_title("Avg. responses for each query")
+    axes[2].set_title("posterior predictive")
