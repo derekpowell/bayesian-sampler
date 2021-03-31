@@ -306,7 +306,7 @@ def plot_model_preds(orig_data, model_data):
                )
     print("Query-level corr", np.round(np.corrcoef(trial_df.estimate, trial_df.preds)[0,1],3))
     sns.scatterplot(ax = axes[1], x = trial_df.preds, y = trial_df.estimate)
-    az.plot_ppc(ax=axes[2], data=model_data, data_pairs={"yhat":"yhat"},num_pp_samples=500)
+    az.plot_ppc(ax=axes[2], data=model_data, data_pairs={"yhat":"yhat"},num_pp_samples=500, legend=False)
     axes[0].set_title("Avg. participant-level responses")    
     axes[1].set_title("Avg. responses for each query")
     axes[2].set_title("posterior predictive")
