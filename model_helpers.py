@@ -281,6 +281,10 @@ def make_arviz_data(mcmc, model, data):
     )
 
 
+def count_divergences(model_data):
+    return np.sum(model_data.sample_stats.diverging.values)
+
+
 ### ---- plotting
 
 

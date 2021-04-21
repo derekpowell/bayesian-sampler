@@ -373,13 +373,39 @@ def PTN_complex_mlm_simplecond(data, y=None):
 ## Hierarchical Mixture Models
 ## =====================================
 
+import numpyro.distributions.constraints as constraints
+from numpyro.distributions.util import promote_shapes, is_prng_key, validate_sample
+from jax import lax
+import jax
+
+class MixtureBeta(dist.Distribution):
+    def __init__(self, concentration1, concentration0, mixing_probs, validate_args=None):
+        expand_shape = jax.lax.broadcast_shapes(
+            jnp.shape(concentration1), jnp.shape(concentration0), jnp.shape(mixing_probs))
+        self._beta = dist.Beta(concentration1, concentration0).expand(expand_shape)
+        self._categorical = dist.Categorical(jnp.broadcast_to(mixing_probs, expand_shape))
+        super(MixtureBeta, self).__init__(batch_shape=expand_shape[:-1], validate_args=validate_args)
+
+    def sample(self, key, sample_shape=()):
+        key, key_idx = random.split(key)
+        samples = self._beta.sample(key, sample_shape)
+        ind = self._categorical.sample(key_idx, sample_shape)
+        return jnp.take_along_axis(samples, ind[..., None], -1)[..., 0]
+
+    def log_prob(self, value):
+        dirichlet_probs = self._beta.log_prob(value[..., None])
+        sum_probs = self._categorical.logits + dirichlet_probs
+        return jax.nn.logsumexp(sum_probs, axis=-1)
+
+
+
 ## -------- Bayesian Sampler -----------
 
 def bayesian_sampler_complex_mlm_mix(data, y=None):
 
     # Data processing
     trial, subj, cond = data["trial"], data["subj"], data["cond"]
-    n_Ps, n_conds = np.unique(subj).shape[0], np.unique(cond).shape[0] 
+    n_Ps, n_conds, n_obs = np.unique(subj).shape[0], np.unique(cond).shape[0], subj.shape[0]
     
     # setup "design matrix" (of sorts)
     X_num, X_denom = jnp.stack([num_vecs[i] for i in trial]), jnp.stack([denom_vecs[i] for i in trial])
@@ -392,13 +418,20 @@ def bayesian_sampler_complex_mlm_mix(data, y=None):
     
     N_prime_pop = numpyro.sample("N_prime_pop", dist.Normal(0,2)) # mildly informative
     N_delta_pop = numpyro.sample("N_delta_pop", dist.Normal(0,2)) 
-    N_prime_sd = numpyro.sample("N_prime_sd", dist.HalfCauchy(2))
-    N_delta_sd = numpyro.sample("N_delta_sd", dist.HalfCauchy(2))
+    N_prime_sd = numpyro.sample("N_prime_sd", dist.HalfCauchy(1))
+    N_delta_sd = numpyro.sample("N_delta_sd", dist.HalfCauchy(1))
     
     # population mixture parameter
-    drawn_p = numpyro.sample("drawn_p", dist.Beta(1.1, 5))
-#     k_50 = numpyro.sample("k_50", dist.TruncatedNormal(low=0., loc=600, scale = 10))
-    k_50 = numpyro.sample("k_50", dist.Normal(0, 20))
+    mixing_probs = numpyro.sample("mixing", dist.Dirichlet(jnp.ones(2)))
+    # mixing_probs = jnp.array([.95,.05])
+
+    
+    # k_50 = numpyro.sample("k_50", dist.TruncatedNormal(low=0., loc=600, scale = 100))
+    # mix_kval = numpyro.sample("k_50", dist.HalfCauchy(300))
+
+    k_50 = numpyro.sample("k_50", dist.Normal(0,20))
+    mix_kval = 600+k_50
+    mix_muval = .50
 
     # subject-level parameters/priors 
     with numpyro.plate("subj", n_Ps):
@@ -412,25 +445,20 @@ def bayesian_sampler_complex_mlm_mix(data, y=None):
     
 #     beta = sigmoid(beta_pop + betas[subj]) # constrains beta to [0,1]
     beta = jnp.exp(beta_pop + betas[subj])
-    numpyro.deterministic("beta_subj", jnp.exp(beta_pop + betas))
     
     # exp() needed to constrain N and N_delta positive
     N = 1 + jnp.exp(N_prime_pop + N_primes[subj]) + jnp.exp(N_delta_pop + N_deltas[subj]) * not_conjdisj # they also required N be at least 1
-    
-    numpyro.deterministic("N_subj", 1 + jnp.exp(N_prime_pop + N_primes))
-    numpyro.deterministic("N_prime_subj", 1 + jnp.exp(N_prime_pop + N_primes) + jnp.exp(N_delta_pop + N_deltas))
     
     theta_ind = ((subj*n_conds)+cond)
     theta = thetas[theta_ind,:]
         
     p_bs = prob_judge_BS(theta, X_num, X_denom, N, beta)
-    
+
     # Likelihood
     with numpyro.plate("data", len(trial)):
-        z = numpyro.sample("z", dist.Bernoulli(drawn_p))
-        yhat = jnp.select([z==0, z==1], [p_bs, .50] )
-        mix_k = jnp.select([z==0, z==1], [k, 600 + k_50])
-        numpyro.sample("yhat", dist.Beta(yhat*mix_k, (1-yhat)*mix_k), obs=y)
+        yhat = jnp.stack([p_bs, jnp.ones(n_obs)*mix_muval], -1)
+        mix_k = jnp.stack([jnp.ones(n_obs)*k, jnp.ones(n_obs)*mix_kval], -1)
+        numpyro.sample("yhat", MixtureBeta(yhat*mix_k, (1-yhat)*mix_k, mixing_probs), obs=y)
     
     return yhat
 
@@ -440,7 +468,7 @@ def PTN_complex_mlm_mix(data, y=None):
 
     # Data processing
     trial, subj, cond = data["trial"], data["subj"], data["cond"]
-    n_Ps, n_conds = np.unique(subj).shape[0], np.unique(cond).shape[0] 
+    n_Ps, n_conds, n_obs = np.unique(subj).shape[0], np.unique(cond).shape[0], subj.shape[0]
     
     # setup "design matrix" (of sorts)
     X_num, X_denom = jnp.stack([num_vecs[i] for i in trial]), jnp.stack([denom_vecs[i] for i in trial])
@@ -457,9 +485,11 @@ def PTN_complex_mlm_mix(data, y=None):
     d_base_sd = numpyro.sample("d_base_sd", dist.HalfCauchy(1))
     d_delta_sd = numpyro.sample("d_delta_sd", dist.HalfCauchy(1))
     
-        # population mixture parameter
-    drawn_p = numpyro.sample("drawn_p", dist.Beta(1.1, 5))
-    k_50 = numpyro.sample("k_50", dist.Normal(0, 20))
+    # population mixture parameters
+    mixing_probs = numpyro.sample("mixing", dist.Dirichlet(jnp.ones(2)))
+    k_50 = numpyro.sample("k_50", dist.Normal(0,20))
+    mix_kval = 600+k_50
+    mix_muval = .50    
 
     # subject-level parameters/priors 
     with numpyro.plate("subj", n_Ps):
@@ -480,9 +510,8 @@ def PTN_complex_mlm_mix(data, y=None):
 
     # Likelihood
     with numpyro.plate("data", len(trial)):
-        z = numpyro.sample("z", dist.Bernoulli(drawn_p))
-        yhat = jnp.select([z==0, z==1], [p_ptn, .50] )
-        mix_k = jnp.select([z==0, z==1], [k, 600 + k_50])
-        numpyro.sample("yhat", dist.Beta(yhat*mix_k, (1-yhat)*mix_k), obs=y)
+        yhat = jnp.stack([p_ptn, jnp.ones(n_obs)*mix_muval], -1)
+        mix_k = jnp.stack([jnp.ones(n_obs)*k, jnp.ones(n_obs)*mix_kval], -1)
+        numpyro.sample("yhat", MixtureBeta(yhat*mix_k, (1-yhat)*mix_k, mixing_probs), obs=y)
 
     return yhat
