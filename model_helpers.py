@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 import numpy as np
-
+import arviz as az
 
 ### ------ Data processing
 
@@ -105,7 +105,7 @@ def sim_sampling(p, beta, N, k):
 #     return np.random.normal(p_bs, k)
     return np.random.beta(p_bs*k, (1-p_bs)*k)
 
-def calc_prob(trial, theta):
+def calc_prob_trial(trial, theta):
     ## compute implied subj. probability from latent theta and trial type
     ## this is a vectorized solution: https://bit.ly/2P6mMcD
     
@@ -163,7 +163,7 @@ def sim_bayesian_sampler(trial_types, n_participants, n_blocks, params):
         theta = X.ID.apply(lambda x: all_thetas[x])
         ) >> mutate(N = X.N_base + X.N_delta * abs(1-X.conjdisj_trial))
 
-    sim_data["prob"] = sim_data.apply(lambda x: calc_prob(x.querytype, x.theta), axis=1)
+    sim_data["prob"] = sim_data.apply(lambda x: calc_prob_trial(x.querytype, x.theta), axis=1)
     sim_data["estimate"] = sim_data.apply(lambda x: sim_sampling(x.prob, x.beta, x.N, params["k"]), axis=1)
     
     return sim_data

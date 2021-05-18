@@ -51,3 +51,7 @@ vignettes/*.pdf
 # jupyter crap
 .ipynb_checkpoints/
 __pycache__/
+.virtual_documents/
+
+# local files
+local/
