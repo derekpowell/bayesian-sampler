@@ -262,7 +262,7 @@ def bayesian_sampler_simple_mlm_d(data, y=None):
     conjdisj, not_conjdisj = jnp.array([is_conjdisj(i) for i in trial]), abs(1-jnp.array([is_conjdisj(i) for i in trial]))
 
     # population level parameters/priors
-    k = numpyro.sample("k", dist.HalfNormal(50)) # noise parameter
+    k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
 
     d_base_pop = numpyro.sample("d_base_pop", dist.Normal(-1.0, 1.0))
  #   d_delta_pop = numpyro.sample("d_delta_pop", dist.Normal(0, .5)) # bias toward lower values for non conj/disj trials
@@ -307,7 +307,7 @@ def bayesian_sampler_complex_mlm_d(data, y=None):
     conjdisj, not_conjdisj = jnp.array([is_conjdisj(i) for i in trial]), abs(1-jnp.array([is_conjdisj(i) for i in trial]))
 
     # population level parameters/priors
-    k = numpyro.sample("k", dist.HalfNormal(50)) # noise parameter
+    k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
 
     d_base_pop = numpyro.sample("d_base_pop", dist.Normal(-1.0, 1.0))
     d_delta_pop = numpyro.sample("d_delta_pop", dist.Normal(0, .5)) # bias toward lower values for non conj/disj trials
@@ -359,7 +359,7 @@ def bayesian_sampler_complex_mlm(data, y=None):
     conjdisj, not_conjdisj = jnp.array([is_conjdisj(i) for i in trial]), abs(1-jnp.array([is_conjdisj(i) for i in trial]))
 
     # population level parameters/priors
-    k = numpyro.sample("k", dist.HalfNormal(50)) # noise parameter
+    k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
     beta_pop = numpyro.sample("beta_pop", dist.Normal(0, 1)) # roughly uniform after summing with random effects + sigmoid()
     beta_sd = numpyro.sample("beta_sd", dist.HalfCauchy(1))
 
@@ -416,7 +416,7 @@ def PTN_simple_mlm(data, y=None):
     not_conditional = abs(1-conditional)
     
     # population level parameters/priors
-    k = numpyro.sample("k", dist.HalfNormal(50)) # noise parameter
+    k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
     d_base_pop = numpyro.sample("d_base_pop", dist.Normal(-1.0, 1.0))
 #    d_delta_pop = numpyro.sample("d_delta_pop", dist.Normal(0, .5)) # bias toward lower values for non conj/disj trials
     d_base_sd = numpyro.sample("d_base_sd", dist.LogNormal(-1., 1.)) # was halfcauchy(1)
@@ -464,7 +464,7 @@ def PTN_complex_mlm(data, y=None):
     not_conditional = abs(1-conditional)
     
     # population level parameters/priors
-    k = numpyro.sample("k", dist.HalfNormal(50)) # noise parameter
+    k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
     d_base_pop = numpyro.sample("d_base_pop", dist.Normal(-1.0, 1.0))
     d_delta_pop = numpyro.sample("d_delta_pop", dist.Normal(0, .5)) # bias toward lower values for non conj/disj trials
     d_base_sd = numpyro.sample("d_base_sd", dist.LogNormal(-1., 1.)) # was halfcauchy(1)
@@ -527,7 +527,7 @@ def PTN_complex_mlm_simplecond(data, y=None):
     not_conditional = abs(1-conditional)
     
     # population level parameters/priors
-    k = numpyro.sample("k", dist.HalfNormal(50)) # noise parameter
+    k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
     d_base_pop = numpyro.sample("d_base_pop", dist.Normal(-1.0, 1.0))
     d_delta_pop = numpyro.sample("d_delta_pop", dist.Normal(0, .5)) # bias toward lower values for non conj/disj trials
     d_base_sd = numpyro.sample("d_base_sd", dist.LogNormal(-1., 1.)) # was halfcauchy(1)
@@ -678,7 +678,7 @@ def PTN_complex_mlm_mix(data, y=None):
     not_conditional = abs(1-conditional)
     
     # population level parameters/priors
-    k = numpyro.sample("k", dist.HalfNormal(50)) # noise parameter
+    k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
 
     d_base_pop = numpyro.sample("d_base_pop", dist.Normal(-1.1, 1.6))
     d_delta_pop = numpyro.sample("d_delta_pop", dist.Normal(0, .5)) # together approx uniform
