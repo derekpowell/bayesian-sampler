@@ -55,3 +55,9 @@ __pycache__/
 
 # local files
 local/
+
+# tex files
+
+*.log
+*.fff
+*.ttt
