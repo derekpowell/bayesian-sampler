@@ -2,6 +2,11 @@ import jax.numpy as jnp
 import numpy as np
 import arviz as az
 
+import re
+
+import siuba as s
+from siuba import _
+
 ### ------ Data processing
 
 def load_raw_data(x=1):
@@ -21,12 +26,18 @@ def load_raw_data(x=1):
     return df
 
 
+# def load_data_exp1():
+#     df = load_raw_data(1)
+#     df["condition"] = np.select([df.querydetail.str.contains("icy|frosty")],[0], default=0)
+# 
+#     return df
+
 def load_data_exp1():
     df = load_raw_data(1)
-    df["condition"] = np.select([df.querydetail.str.contains("icy|frosty")],[0], default=0)
+    # df["condition"] = np.select([df.querydetail.str.contains("icy|frosty")],[0], default=0)
+    df = df >> s.mutate(condition = s.if_else(df.querydetail.str.contains("icy|frosty"), 0, 1))
 
     return df
-
 
 def load_data_exp2():
     df = load_raw_data(2)
@@ -47,25 +58,27 @@ def load_data_exp2():
 
     return df
 
-def load_query_avg_data_exp2():
-
-    df = (load_data_exp2()
-          .groupby(["ID","condition","querytype","querydetail"], as_index=False)
-          .agg({"estimate":"mean"})
-          .assign(estimate = lambda x: x.estimate.replace({0:.01, 1:.99}))
-         )
-    
-    return df
 
 def load_query_avg_data_exp1():
+    df = (
+        load_data_exp1() >>
+        s.group_by("ID","condition","querytype", "querydetail") >>
+        s.summarize(estimate = np.mean(_.estimate)) >>
+        s.mutate(estimate =  _.estimate.replace({0:.01, 1:.99}))
+    )
 
-    df = (load_data_exp1()
-          .groupby(["ID", "condition", "querytype", "querydetail"], as_index=False)
-          .agg({"estimate":"mean"})
-          .assign(estimate = lambda x: x.estimate.replace({0:.01, 1:.99}))
-         )
-    
     return df
+
+
+def load_query_avg_data_exp2():
+    df = (
+        load_data_exp2() >>
+        s.group_by("ID","condition","querytype", "querydetail") >>
+        s.summarize(estimate = np.mean(_.estimate)) >>
+        s.mutate(estimate =  _.estimate.replace({0:.01, 1:.99}))
+    )
+
+    return df    
 
 
 def load_query_avg_data_all():
