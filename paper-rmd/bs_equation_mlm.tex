@@ -1,0 +1,14 @@
+\begin{align*}
+  y_{ij} &\sim Beta\big(\mu_{ij} \kappa, (1-\mu_{ij}) \kappa \big) \\
+  \mu_{ij} &= f_{BS}(\overrightarrow{p_i}, d_j, d_j')  \\
+  d_j &= \frac{expit(\delta_j)}{3} \\
+  d_j' &= \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{3} \\
+  \overrightarrow{p_i} &\sim Dirichlet(\overrightarrow{1}) \\
+  \overline{\delta} &\sim Normal(-1, 1) \\
+  \overline{\Delta\delta} &\sim Normal(0, .50) \\
+  log(\sigma_{\delta}) &\sim Normal(-1, 1) \\
+  log(\sigma_{\Delta\delta}) &\sim Normal(-1, 1) \\
+  \delta_j &\sim Normal(\overline{\delta}, \sigma_{\delta}) \\
+  \Delta\delta_j &\sim Normal(\overline{\Delta\delta}, \sigma_{\Delta\delta}) \\
+  \kappa &\sim HalfCauchy(20) \\
+\end{align*}
