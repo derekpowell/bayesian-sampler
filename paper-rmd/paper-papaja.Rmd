@@ -47,6 +47,9 @@ draft             : no
 documentclass     : "apa6"
 classoption       : "man"
 output            : papaja::apa6_pdf
+header-includes   :
+  - \usepackage{tikz}
+  - \usetikzlibrary{bayesnet}
 ---
 
 ```{r setup, include = FALSE}
@@ -109,7 +112,8 @@ t1_df %>%
   mutate(model = gsub("BS", "Bayesian Sampler", model)) %>% 
   rename(Model = model) %>% 
   kbl(caption="Original model fitting results", digits=1, booktabs=T) %>% 
-  kable_classic(full_width=F)
+  kable_classic(full_width=F) %>% 
+  row_spec(1, bold=TRUE)
 ```
 
 In both experiments, the simple version of the Bayesian Sampler scores best, but the complex version of the PT+N model comes in second (lower BIC scores are better). It is not obvious what conclusions should be drawn from these results. Of course, the simple Bayesian Sampler model appears to win by the numbers. But conjunction fallacies are an extremely robust empirical finding [@mellers.etal2001; @sides.etal2002] and are clearly present in the data collected by Zhu and colleagues (2020). So we might rule out the simple variants of the models on the grounds that they will fail to capture important qualitative features of the data, which would instead favor the PT+N theory. For their part, Zhu and colleagues (2020) elect to split the baby by averaging the simple and complex model scores together. This approach somewhat favors the Bayesian Sampler theory overall, though they are appropriately cautious about drawing any strong conclusions.
@@ -146,16 +150,20 @@ I implement both the Bayesian Sampler and PT+N models as Bayesian models in the 
 
 The PT+N model defines probability judgments as
 
-$$P_{e}(A) = (1-2d)P(A) + d$$
-$$P_e(A\land B) = (1-d^\prime)P(A \land B)+d^\prime$$
-$$P_e(A\lor B) = (1-d^\prime)P(A \lor B)+d^\prime$$
-$$P_e(A|B) = \frac{(1-2d)^2P(A \land B) + d(1-2d)\big(P(A)+P(B)\big)+d^2}{(1-2d)P(B)+d}$$
+\begin{align*}
+  P_{e}(A) &= (1-2d)P(A) + d \\
+  P_e(A\land B) &= (1-d^\prime)P(A \land B)+d^\prime \\
+  P_e(A\lor B) &= (1-d^\prime)P(A \lor B)+d^\prime \\
+  P_e(A|B) &= \frac{(1-2d)^2P(A \land B) + d(1-2d)\big(P(A)+P(B)\big)+d^2}{(1-2d)P(B)+d}
+\end{align*}
 
 In contrast, the Bayesian Sampler model defines probability judgments as
 
-$$P_{e}(A) = \frac{N}{N + 2 \beta}P(A) + \frac{\beta}{N+2 \beta}$$
-$$P_{e}(A \land B) = \frac{N’}{N’ + 2 \beta}P(A \land B) + \frac{\beta}{N’+2 \beta}$$
-$$P_{e}(A \lor B) = \frac{N’}{N’ + 2 \beta}P(A \lor B) + \frac{\beta}{N’+2 \beta}$$
+\begin{align*}
+  P_{e}(A) &= \frac{N}{N + 2 \beta}P(A) + \frac{\beta}{N+2 \beta} \\
+  P_{e}(A \land B) &= \frac{N’}{N’ + 2 \beta}P(A \land B) + \frac{\beta}{N’+2 \beta} \\
+  P_{e}(A \lor B) &= \frac{N’}{N’ + 2 \beta}P(A \lor B) + \frac{\beta}{N’+2 \beta} 
+\end{align*}
 
 Fixing d and d’ or N and N’ equal yields the “simple” variant of each of the models, which treat conjunctive and disjunctive probability judgments identically to simple probability judgments.
 
@@ -163,29 +171,39 @@ Notice that for each model the probability judgments depend on underlying subjec
 
 Zhu, Sanborn & Chater (2020) implement completely unpooled models with separate d, d’, N, N’, and $\beta$ parameters for each participant. Translated into a Bayesian Framework, we can write the PT+N model as:
 
-$$y_{ij} \sim beta\big(\mu_{ij} k, (1-\mu_{ij})k\big)$$
-$$\mu_{ij} = f_{PT+N}(\overrightarrow{p_i}, d_j, d_j) $$
-$$ d_j = \frac{expit(\delta_j)}{2}$$
-$$ d_j’ = \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{2}$$
-$$ \overrightarrow{p_i} \sim Dirichlet(\overrightarrow{1})$$
-$$ \delta_j \sim Normal(0,1)$$
-$$ \Delta\delta_j \sim Normal(0,1)$$
-$$ k \sim HalfCauchy(20)$$
+\begin{figure}
+  \begin{minipage}{.5\textwidth}
+    \flushright
+    \input{ptn_platediagram}
+  \end{minipage}%
+  \begin{minipage}{.5\textwidth}
+    \flushleft
+    \small
+    \begin{align*}
+      y_{ij} &\sim beta\big(\mu_{ij} \kappa, (1-\mu_{ij}) \kappa \big) \\
+      \mu_{ij} &= f_{PT+N}(\overrightarrow{p_i}, d_j, d_j)  \\
+      d_j &= \frac{expit(\delta_j)}{2} \\
+      d_j’ &= \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{2} \\
+      \overrightarrow{p_i} &\sim Dirichlet(\overrightarrow{1}) \\
+      \delta_j &\sim Normal(0,1) \\
+      \Delta\delta_j &\sim Normal(0,1) \\
+      \kappa &\sim HalfCauchy(20)
+    \end{align*}
+  \end{minipage}
+  \caption{Complex PT+N model diagram and formula specifications.}
+\end{figure}
 
 The function $f_{PT+N}$ computes the expected probability estimate using the underlying subjective probability p, the noise parameters d and d’, and the relevant equation as defined by the PT+N theory (see supplemental materials for implementation details). Prior predictive checks were conducted for all models to select priors that would be uninformative or minimally informative on the scale of the model parameters d and d’.
 
 Recall that Zhu and colleagues (2020) identified a bridging condition relating b and N in the Bayesian Sampler model to the d parameter of the PT+N model. To support direct comparisons of the models, I parameterize the Bayesian Sampler model according to the implied d and d’, rather than directly according to its $\beta$, N, and N’ parameters. I constrain d to [0, $1/3$] for the Bayesian Sampler model to reflect the assumption that $\beta \in [0, 1]$. This allows the same priors to be used for the corresponding Bayesian Sampler and PT+N models, simplifying their comparison. 
 
-The Bayesian Sampler model is therefore:
+The Bayesian Sampler model is therefore identical to the PT+N model save for the following changes to $\mu_{ijk}$, $d$, and $d'$, as shown below:
 
-$$y_{ij} \sim beta\big(\mu_{ij} k, (1-\mu_{ij})k\big)$$
-$$\mu_{ij} = f_{BS}(\overrightarrow{p_i}, d_j, d_j’) $$
-$$ d_j = \frac{expit(\delta_j)}{2}$$
-$$ d_j’ = \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{2}$$
-$$ \overrightarrow{p_i} \sim Dirichlet(\overrightarrow{1})$$
-$$ \delta_j \sim Normal(0,1)$$
-$$ \Delta\delta_j \sim Normal(0,1)$$
-$$ k \sim HalfCauchy(20)$$
+\begin{align*}
+  \mu_{ij} &= f_{BS}(\overrightarrow{p_i}, d_j, d_j)  \\
+  d_j &= \frac{expit(\delta_j)}{3} \\
+  d_j’ &= \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{3} \\
+\end{align*}
 
 Where the function $f_{BS}$ computes the expected probability estimate as prescribed by the Bayesian Sampler theory. 
 
@@ -193,18 +211,19 @@ Where the function $f_{BS}$ computes the expected probability estimate as prescr
 
 Both of these models can also be implemented as hierarchical models with partial pooling for the d and d’ parameters (implicitly, for N and N’ in the case of the Bayesian Sampler). This should prevent over-penalizing complex versions of the model, as well as potentially improving their overall predictive fit. The hierarchical implementation adds parameters for the population-level d and d’ as well as a parameter controlling the standard deviation of the distribution for the subject-level effects. For ease of interpretation, the centered parameterization is shown below, although the actual models used a non-centered parameterization to improve sampling efficiency [@papaspiliopoulos.etal2007].
 
-$$y_{ij} \sim beta\big(\mu_{ij} k, (1-\mu_{ij})k\big)$$
-$$\mu_{ij} = f_{BS}(\overrightarrow{p_i}, d_j, d_j’) $$
-$$d_j = \frac{ expit(\delta_j )}{3}$$
-$$ d_j’ = \frac{ expit\big( \delta_j  + \exp(\Delta\delta_j )\big) }{3}$$
-$$ \overrightarrow{p_i} \sim Dirichlet(\overrightarrow{1})$$
-$$ \delta_{pop} \sim Normal(-1, 1)$$
-$$ \Delta\delta_{pop} \sim Normal(0, .50)$$
-$$ log(\sigma_{\delta}) \sim Normal(-1, 1)$$
-$$ log(\sigma_{\Delta\delta}) \sim Normal(-1, 1)$$
-$$\delta_j \sim Normal(\delta_{pop}, \sigma_{\delta})$$
-$$\Delta\delta_j \sim Normal(\Delta\delta_{pop}, \sigma_{\Delta\delta})$$
-$$k \sim HalfCauchy(20)$$
+\begin{figure}
+  \begin{minipage}{.5\textwidth}
+    \flushright
+    \input{bs_platediagram_mlm}
+  \end{minipage}%
+  \begin{minipage}{.5\textwidth}
+    \flushleft
+    \small
+    \input{bs_equation_mlm}
+  \end{minipage}
+  \caption{Hierarchical complex Bayesian Sampler model diagram and formula specifications.}
+\end{figure}
+
 
 Finally, I also explored fitting versions of the Bayesian Sampler model that allowed values of $\beta > 1$. Restricting $\beta$ to [0,1] restricts the prior distribution of the Bayesian sampler to the class of “ignorance priors” [@zhu.etal2020]. However, it is also possible that people bring informative priors to the probability judgment task. Indeed, Zhu and colleagues (2020) acknowledge there are situations where an informative prior may be warranted [see e.g., @fennell.baddeley2012]. If $\beta$ is unrestricted, allowed to fall in the domain [0, $\infty$] then the Bayesian Sampler model becomes more flexible, allowing for equivalent “noise” levels in the same [0, .50] range as the PT+N model. Though it would seem a more fundamental change, this same model may also be seen as a version of the PT+N theory that jettisons its constructive account of conditional probability judgment. Thus, fitting this additional “hybrid” model allows for a complete comparison of the models along both of their differing dimensions. 
 
@@ -255,7 +274,8 @@ t2_df %>%
     ) %>%
   add_header_above(c(" ", "Experiment 1"=4, "Experiment 2"=4)) %>% 
   kable_classic(full_width=F) %>% 
-  kable_styling(latex_options="scale_down")
+  kable_styling(latex_options="scale_down") %>% 
+  row_spec(1, bold=TRUE)
 ```
 
 Finally, it is worth noting that these models provide quite strong overall fits to the data, not just for the query averages, but also for the trial averages across individual participants as seen from the correlations between predicted and observed responses in Table X. 
