@@ -27,7 +27,7 @@ authornote: |
   Arizona State University, School of Social and Behavioral Sciences
 
 abstract: |
-  Bayesian theories of cognitive science hold that cognition is fundamentally probabilistic. However, one mark sometimes held against these theories is that people’s explicit probability judgments often violate the laws of probability. Two recent proposals, the "Probability Theory plus Noise" [@costello.watts2014] and "Bayesian Sampler" [@zhu.etal2020] theories of probability judgments, both seek to account for these biases while maintaining that mental credences are fundamentally probabilistic. These theories fit quite differently into the larger project of Bayesian cognitive science, but their many similarities complicate comparisons of their predictive accuracy. In particular, comparing the models demands a careful accounting of model complexity. Here, I cast these theories into a Bayesian data analysis framework that supports principled model comparison using information criteria. Compared the fits of both models on data collected by Zhu and colleagues [-@zhu.etal2020] I find the data are best explained by a version of the Bayesian Sampler model that allows for informative priors.
+  Bayesian theories of cognitive science hold that cognition is fundamentally probabilistic. However, one mark sometimes held against these theories is that people’s explicit probability judgments often violate the laws of probability. Two recent proposals, the "Probability Theory plus Noise" [@costello.watts2014] and "Bayesian Sampler" [@zhu.etal2020] theories of probability judgments, both seek to account for these biases while maintaining that mental credences are fundamentally probabilistic. These theories fit quite differently into the larger project of Bayesian cognitive science, but their many similarities complicate comparisons of their predictive accuracy. In particular, comparing the models demands a careful accounting of model complexity. Here, I cast these theories into a Bayesian data analysis framework that supports principled model comparison using information criteria. Compared the fits of both models on data collected by Zhu and colleagues [-@zhu.etal2020] I find the data are best explained by a modified version of the Bayesian Sampler model that allows for informative priors.
   
   <!-- https://tinyurl.com/ybremelq -->
   
@@ -135,7 +135,7 @@ In both experiments, the simple version of the Bayesian Sampler scores best, but
 
 When comparing and selecting models based on their predictive accuracy, it is necessary to correct for the potential for these models to "overfit" the data. Typically this correction comes in the form of a "complexity penalty," penalizing models in proportion to their flexibility for accommodating different patterns of data [@gelman.etal2014]. Zhu and colleagues [-@zhu.etal2020] warn that BIC, which penalizes models based only on the number of parameters in the model, cannot fully account for the differences in the models’ complexity. 
 
-There are at least three challenges to accounting for model complexity in the comparison of the PT+N and Bayesian Sampler models. First, the models differ not only in the number of parameters but in the domain of those parameters. Zhu and colleagues [-@zhu.etal2020] assume that the Bayesian Sampler model’s prior distribution should reflect ignorance or a lack of information. A uniform prior, Beta(1, 1) is the most obvious choice in this case, but theoretical arguments can also be made for Beta(0.5, 0.5) (Jeffrey’s prior), Beta(0,0) (Haldene’s prior), or perhaps other  symmetric beta distributions Beta($\beta$,$\beta$) with $beta \leq 1$ [@jaynes2003]. Thus, they restrict the range of the $\beta$ parameter in their Bayesian Sampler model to fall within the interval [0,1]. Via the bridging conditions (eq X), they show that this restricts the "noise level" for the Bayesian Sampler,  represented in implied d under the PT+N model, to [0, $1/3$]. The Bayesian Sampler’s implied $d$ approaches the upper limit of $1/3$ as $N$ approaches $\infty$ and $\beta$ equals 1,  whereas the PT+N model permits noise values between [0, 0.50]. 
+There are at least three challenges to accounting for model complexity in the comparison of the PT+N and Bayesian Sampler models. First, the models differ not only in the number of parameters but in the domain of those parameters. Zhu and colleagues [-@zhu.etal2020] assume that the Bayesian Sampler model’s prior distribution should reflect ignorance or a lack of information. A uniform prior, Beta(1, 1) is the most obvious choice in this case, but theoretical arguments can also be made for Beta(0.5, 0.5) (Jeffrey’s prior), Beta(0,0) (Haldene’s prior), or perhaps other  symmetric beta distributions Beta($\beta$,$\beta$) with $beta \leq 1$ [@jaynes2003]. Thus, they restrict the range of the $\beta$ parameter in their Bayesian Sampler model to fall within the interval [0,1]. Via the bridging conditions, they show that this restricts the "noise level" for the Bayesian Sampler,  represented in implied d under the PT+N model, to [0, $1/3$]. The Bayesian Sampler’s implied $d$ approaches the upper limit of $1/3$ as $N$ approaches $\infty$ and $\beta$ equals 1,  whereas the PT+N model permits noise values between [0, 0.50]. 
 
 Second, it is not immediately clear how the models’ structural differences impact their flexibility. To be sure, Zhu and colleagues’ [-@zhu.etal2020] bridging condition makes it clear that the PT+N model is more flexible when it comes to predicting unconditional probabilities. But, what impact does the PT+N model’s treatment of conditional probabilities have on model complexity? Is this component of the model a sort of Ptolemaic epicycle, adding complexity to the model that should be penalized? Or, does it constitute a commitment to novel predictions that thereby constrain its flexibility? Determining model complexity a priori is not always straightforward when the models being compared differ structurally. 
 
@@ -193,7 +193,7 @@ Zhu, Sanborn & Chater (2020) implement completely unpooled models with separate 
   \begin{minipage}{.5\textwidth}
     \flushleft
     \small
-    \begin{align*}
+    \begin{align}
       y_{ijk} &\sim beta\big(\mu_{ijk} \kappa, (1-\mu_{ijk}) \kappa \big) \\
       \mu_{ijk} &= f_{PT+N}(\overrightarrow{p_{jk}}, d_j, d_j)  \\
       d_j &= \frac{expit(\delta_j)}{2} \\
@@ -202,7 +202,7 @@ Zhu, Sanborn & Chater (2020) implement completely unpooled models with separate 
       \delta_j &\sim Normal(0,1) \\
       \Delta\delta_j &\sim Normal(0,1) \\
       \kappa &\sim HalfCauchy(20)
-    \end{align*}
+    \end{align}
   \end{minipage}
   \caption{Complex unpooled PT+N model diagram and formula specifications. Circular nodes are parameters, shaded nodes are observations, and squared nodes are deterministic functions of parameters. Plates signify values defined for $i$ trials, $j$ participants, and $k$ conditions.}
 \end{figure}
@@ -212,14 +212,12 @@ The function $f_{PT+N}$ computes the expected probability estimate using the und
 
 Recall that Zhu and colleagues (2020) identified a bridging condition relating b and N in the Bayesian Sampler model to the *d* parameter of the PT+N model. To support direct comparisons of the models, I parameterize the Bayesian Sampler model according to the implied d and d', rather than directly according to its $\beta$, N, and N' parameters. I constrain *d* to $[0, 1/3]$ for the Bayesian Sampler model to reflect the assumption that $\beta \in [0, 1]$. This allows the same priors to be used for the corresponding Bayesian Sampler and PT+N models, simplifying their comparison. 
 
-
-
-The Bayesian Sampler model is therefore identical to the PT+N model save for thechanges to $\mu_{ijk}$, $d$, and $d'$ shown below:
+The Bayesian Sampler model is therefore identical to the PT+N model save for the changes to $\mu_{ijk}$, $d$, and $d'$ shown below:
 
 \begin{align*}
   \mu_{ijk} &= f_{BS}(\overrightarrow{p_{jk}}, d_j, d_j)  \\
   d_j &= \frac{expit(\delta_j)}{3} \\
-  d_j’ &= \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{3} \\
+  d_j’ &= \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{3}
 \end{align*}
 
 Where the function $f_{BS}$ computes the expected probability estimate as prescribed by the Bayesian Sampler theory. 
@@ -257,7 +255,7 @@ Data from Experiment 1 are only modestly informative with respect to discriminat
 
 Recall, this model may also be seen as a version of the PT+N theory that removes the original theory’s constructive account of conditional probability judgments. Comparing predictions for conditional probability judgments from the unrestricted Bayesian Sampler model and the best-fitting PT+N model, we see that the Bayesian Sampler model better captures these judgments from Experiment 2 (trial-average-level $R^2$ = .85 vs .73; participant-level $R^2$ = .51 vs .45). These findings suggest that conditioning is better seen as part of the mental model than the probability judgment process. 
 
-Figure X shows the posterior distributions of the population-level d and d’ parameters inferred from the unrestricted Bayesian Sampler model. Using data from experiment 2, population-level estimates of d and d’ are greater than $\frac{1}{3}$, outside the range implied by the assumption of "ignorance priors" in the Bayesian Sampler model. Parameters fit to the data from Experiment 1 are more consistent with this assumption, although a substantial proportion of individual participants’ d and d’ estimates also lie outside this range (13 of 59 for d, 26 of 59 for d’). The finding that there are clear differences in d and d’ estimated across experiments suggest that the mental sampling processes producing estimates vary in the different conditions, either in terms of the number of samples that are drawn, the noise in reading those samples, or the form of the prior distribution assumed by participants in each context.
+Figure 4 shows the posterior distributions of the population-level d and d’ parameters inferred from the unrestricted Bayesian Sampler model. Using data from experiment 2, population-level estimates of d and d’ are greater than $\frac{1}{3}$, outside the range implied by the assumption of "ignorance priors" in the Bayesian Sampler model. Parameters fit to the data from Experiment 1 are more consistent with this assumption, although a substantial proportion of individual participants’ d and d’ estimates also lie outside this range (13 of 59 for d, 26 of 59 for d’). The finding that there are clear differences in d and d’ estimated across experiments suggest that the mental sampling processes producing estimates vary in the different conditions, either in terms of the number of samples that are drawn, the noise in reading those samples, or the form of the prior distribution assumed by participants in each context.
 
 \begin{figure}[ht]
 \centering
