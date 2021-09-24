@@ -121,7 +121,7 @@ Zhu, Sanborn, and Chater [-@zhu.etal2020] compared their Bayesian Sampler model 
 t1_df <- read_csv("original-fits.csv")
 
 t1_df %>% 
-  select(-X1) %>% 
+  select(-`...1`) %>% 
   mutate(model = gsub("BS", "Bayesian Sampler", model)) %>% 
   rename(Model = model) %>% 
   kbl(caption="Original model fitting results", digits=1, booktabs=T) %>% 
@@ -193,7 +193,7 @@ Zhu, Sanborn & Chater (2020) implement completely unpooled models with separate 
   \begin{minipage}{.5\textwidth}
     \flushleft
     \small
-    \begin{align}
+    \begin{align*}
       y_{ijk} &\sim beta\big(\mu_{ijk} \kappa, (1-\mu_{ijk}) \kappa \big) \\
       \mu_{ijk} &= f_{PT+N}(\overrightarrow{p_{jk}}, d_j, d_j)  \\
       d_j &= \frac{expit(\delta_j)}{2} \\
@@ -202,7 +202,7 @@ Zhu, Sanborn & Chater (2020) implement completely unpooled models with separate 
       \delta_j &\sim Normal(0,1) \\
       \Delta\delta_j &\sim Normal(0,1) \\
       \kappa &\sim HalfCauchy(20)
-    \end{align}
+    \end{align*}
   \end{minipage}
   \caption{Complex unpooled PT+N model diagram and formula specifications. Circular nodes are parameters, shaded nodes are observations, and squared nodes are deterministic functions of parameters. Plates signify values defined for $i$ trials, $j$ participants, and $k$ conditions.}
 \end{figure}
@@ -275,7 +275,7 @@ The dependence of complexity penalties on observed data may strike some as an un
 t2_df <- read_csv("model-comparison-table.csv")
 
 t2_df %>% 
-  select(-X1) %>% 
+  select(-`...1`) %>% 
   gather(measure, value, -Experiment, -model) %>% 
   pivot_wider(names_from = c(Experiment, measure), values_from=value,names_sort = T) %>% 
   rename(Model = model) %>%

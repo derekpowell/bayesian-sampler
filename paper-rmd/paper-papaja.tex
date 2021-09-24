@@ -5,14 +5,13 @@
 \documentclass[
   english,
   man,floatsintext]{apa6}
+\usepackage{amsmath,amssymb}
 \usepackage{lmodern}
-\usepackage{amsmath}
 \usepackage{ifxetex,ifluatex}
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp} % provide euro and other symbols
-  \usepackage{amssymb}
 \else % if luatex or xetex
   \usepackage{unicode-math}
   \defaultfontfeatures{Scale=MatchLowercase}
@@ -122,7 +121,10 @@
   \usepackage{polyglossia}
   \setmainlanguage[]{english}
 \else
-  \usepackage[shorthands=off,main=english]{babel}
+  \usepackage[main=english]{babel}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
 \fi
 \ifluatex
   \usepackage{selnolig}  % disable illegal ligatures
@@ -316,7 +318,7 @@ Zhu, Sanborn \& Chater (2020) implement completely unpooled models with separate
   \begin{minipage}{.5\textwidth}
     \flushleft
     \small
-    \begin{align}
+    \begin{align*}
       y_{ijk} &\sim beta\big(\mu_{ijk} \kappa, (1-\mu_{ijk}) \kappa \big) \\
       \mu_{ijk} &= f_{PT+N}(\overrightarrow{p_{jk}}, d_j, d_j)  \\
       d_j &= \frac{expit(\delta_j)}{2} \\
@@ -325,7 +327,7 @@ Zhu, Sanborn \& Chater (2020) implement completely unpooled models with separate
       \delta_j &\sim Normal(0,1) \\
       \Delta\delta_j &\sim Normal(0,1) \\
       \kappa &\sim HalfCauchy(20)
-    \end{align}
+    \end{align*}
   \end{minipage}
   \caption{Complex unpooled PT+N model diagram and formula specifications. Circular nodes are parameters, shaded nodes are observations, and squared nodes are deterministic functions of parameters. Plates signify values defined for $i$ trials, $j$ participants, and $k$ conditions.}
 \end{figure}
