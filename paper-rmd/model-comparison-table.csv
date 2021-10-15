@@ -1,21 +1,21 @@
 ,Experiment,model,loo,penalty,resp_r,trial_r
-0,Exp. 1,Unrestricted BS MLM,-1178.1,149.2,0.725,0.821
-1,Exp. 1,Bayesian Sampler complex MLM,-1167.7,145.6,0.723,0.816
-2,Exp. 1,PT+N complex,-1163.5,133.6,0.722,0.821
-3,Exp. 1,Bayesian Sampler complex,-1159.5,149.3,0.723,0.815
-4,Exp. 1,PT+N complex MLM,-1157.0,147.1,0.722,0.82
-5,Exp. 1,Bayesian Sampler simple MLM,-1149.5,141.0,0.719,0.81
-6,Exp. 1,Bayesian Sampler simple,-1138.1,146.8,0.718,0.806
-7,Exp. 1,PT+N simple,-1051.8,132.6,0.695,0.793
-8,Exp. 1,PT+N simple MLM,-1044.7,137.9,0.695,0.793
-9,Exp. 1,Relative Freq.,-746.6,146.8,0.664,0.737
-10,Exp. 2,Unrestricted BS MLM,-3953.1,368.7,0.688,0.878
-11,Exp. 2,Bayesian Sampler complex MLM,-3815.4,399.9,0.675,0.852
-12,Exp. 2,PT+N complex MLM,-3796.7,356.1,0.658,0.835
-13,Exp. 2,Bayesian Sampler simple MLM,-3794.7,381.0,0.667,0.839
+0,Exp. 1,Unrestricted BS hier.,-2163.2,296.4,0.884,0.964
+1,Exp. 1,Bayesian Sampler complex,-2134.4,285.1,0.883,0.961
+2,Exp. 1,Bayesian Sampler complex hier.,-2131.9,292.0,0.883,0.96
+3,Exp. 1,Bayesian Sampler simple hier.,-2053.9,271.8,0.874,0.953
+4,Exp. 1,Bayesian Sampler simple,-2051.3,273.7,0.874,0.952
+5,Exp. 1,PT+N complex hier.,-1927.4,298.3,0.867,0.946
+6,Exp. 1,PT+N complex,-1922.8,264.5,0.864,0.941
+7,Exp. 1,PT+N simple,-1708.8,254.5,0.838,0.918
+8,Exp. 1,PT+N simple hier.,-1697.1,265.4,0.839,0.919
+9,Exp. 1,Relative Freq.,-1266.2,305.7,0.82,0.875
+10,Exp. 2,Unrestricted BS hier.,-3953.3,368.4,0.688,0.878
+11,Exp. 2,Bayesian Sampler complex hier.,-3815.6,399.5,0.675,0.852
+12,Exp. 2,PT+N complex hier.,-3795.3,356.2,0.658,0.835
+13,Exp. 2,Bayesian Sampler simple hier.,-3790.5,383.2,0.667,0.839
 14,Exp. 2,PT+N complex,-3768.5,398.2,0.667,0.84
 15,Exp. 2,Bayesian Sampler complex,-3733.2,453.6,0.679,0.848
 16,Exp. 2,Bayesian Sampler simple,-3722.8,418.9,0.667,0.831
-17,Exp. 2,PT+N simple MLM,-3643.8,305.3,0.617,0.772
+17,Exp. 2,PT+N simple hier.,-3643.8,305.3,0.617,0.772
 18,Exp. 2,PT+N simple,-3643.0,319.5,0.619,0.777
 19,Exp. 2,Relative Freq.,-1287.7,424.6,0.516,0.639
