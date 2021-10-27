@@ -20,19 +20,17 @@ author:
 affiliation:
   - id            : "1"
     institution   : "Arizona State University, School of Social and Behavioral Sciences"
-  # - id            : "2"
-  #   institution   : "Konstanz Business School"
 
 authornote: |
- This manuscript is pre-print that has not yet been peer reviewed.
+ This manuscript is pre-print that has not yet been peer reviewed (October 27, 2021). This study was not preregistered.
 
 abstract: |
- Bayesian theories of cognitive science hold that cognition is fundamentally probabilistic. However, one mark sometimes held against these theories is that people’s explicit probability judgments often violate the laws of probability. Two recent proposals, the "Probability Theory plus Noise" [@costello.watts2014] and "Bayesian Sampler" [@zhu.etal2020] theories of probability judgments, both seek to account for these biases while maintaining that mental credences are fundamentally probabilistic. These theories fit quite differently into the larger project of Bayesian cognitive science, but their many similarities complicate comparisons of their predictive accuracy. In particular, comparing the models demands a careful accounting of model complexity. Here, I cast these theories into a Bayesian data analysis framework that supports principled model comparison using information criteria. Comparing the fits of both models on data collected by Zhu and colleagues [-@zhu.etal2020] I find the data are best explained by a modified version of the Bayesian Sampler model that allows for informative priors.
+ Bayesian theories of cognitive science hold that cognition is fundamentally probabilistic, but one mark sometimes held against these theories is that people’s explicit probability judgments often violate the laws of probability. Two recent proposals, the "Probability Theory plus Noise" [@costello.watts2014] and "Bayesian Sampler" [@zhu.etal2020] theories of probability judgments, both seek to account for these biases while maintaining that mental credences are fundamentally probabilistic. These theories fit quite differently into the larger project of Bayesian cognitive science, but their many similarities complicate comparisons of their predictive accuracy. In particular, comparing the models demands a careful accounting of model complexity. Here, I cast these theories into a Bayesian data analysis framework that supports principled model comparison using information criteria. Comparing the fits of both models on data collected by Zhu and colleagues [-@zhu.etal2020] I find the data are best explained by a modified version of the Bayesian Sampler model under which people may hold informative priors about probabilities.
   
   <!-- https://tinyurl.com/ybremelq -->
   
 keywords          : "probability judgments, Bayesian cognitive science, heuristics and biases"
-wordcount         : "X"
+wordcount         : "4617"
 
 bibliography      : ["references.bib"]
 
@@ -53,6 +51,7 @@ output:
 header-includes:
   - \usepackage{tikz}
   - \usetikzlibrary{bayesnet}
+  - \mathchardef\hyph="2D
 ---
 
 ```{r setup, include = FALSE}
@@ -65,11 +64,11 @@ library(tidyverse)
 library(kableExtra)
 ```
 
-Bayesian theories of cognition offer a unified formal framework for cognitive science [@tenenbaum.etal2011] that has had remarkable explanatory successes across domains, including in perception [e.g. @kersten.etal2004], memory [@anderson1991], language [@xu.tenenbaum2007], and reasoning [@lu.etal2012]. At the heart of the Bayesian project is the idea that cognition is fundamentally probabilistic: that people reason according to subjective degrees of belief which follow the laws of probability and, in particular, that they are revised in light of evidence according to Bayes' Rule. It is somewhat embarrassing then, that that these theories have often been accused of failing to describe human "beliefs" of the simple and everyday sort, such as beliefs like "it will rain tomorrow", "vaccines are safe," or "this politician is trustworthy".
+Bayesian theories of cognition offer a unified formal framework for cognitive science [@tenenbaum.etal2011] that has had remarkable explanatory successes across domains, including in perception [e.g. @kersten.etal2004], memory [e.g. @anderson1991], language [e.g. @xu.tenenbaum2007], and reasoning [e.g. @lu.etal2012]. At the heart of the Bayesian project is the idea that cognition is fundamentally probabilistic: that people reason according to subjective degrees of belief which follow the laws of probability and, in particular, that they are revised in light of evidence according to Bayes' Rule. It is somewhat embarrassing then, that that these theories have often been accused of failing to describe human "beliefs" of the simple and everyday sort, such as beliefs like "it will rain tomorrow", "vaccines are safe," or "this politician is trustworthy".
 
 Trouble starts as soon as we attempt to measure beliefs. According to Bayesian theories of cognition and epistemology [@jaynes2003], the degree to which people believe in various propositions, or their credences, should reflect subjective mental probabilities. So asking people to express beliefs in terms of probability seems only natural. 
 
-Unfortunately, people’s explicit probability judgments routinely violate the axioms of probability theory. For example, human probability judgments often exhibit the "conjunction fallacy": people will often judge the conjunction of two events (e.g. "Tom Brady likes football and miniature horses") as being more probable than one of the events in isolation (e.g. "Tom Brady likes miniature horses"), a plain and flagrant violation of probability theory [@tversky.kahneman1983]. Other demonstrations of the incoherence of probability judgments include disjunction fallacies, subadditivity or "unpacking" effects [@tversky.koehler1994], and a variety of other findings illustrating the incoherence of human probability judgments [for an accessible review, see @kahneman2013]. Altogether these findings have led many researchers to abandon the notion that degrees of belief are represented as probabilities.
+Unfortunately, people’s explicit probability judgments routinely violate the most basic axioms of probability theory. For example, human probability judgments often exhibit the "conjunction fallacy": people will often judge the conjunction of two events (e.g. "Tom Brady likes football and miniature horses") as being more probable than one of the events in isolation (e.g. "Tom Brady likes miniature horses"), a plain and flagrant violation of probability theory [@tversky.kahneman1983]. Other demonstrations of the incoherence of probability judgments include disjunction fallacies, subadditivity or "unpacking" effects [@tversky.koehler1994], and a variety of other findings illustrating the incoherence of human probability judgments [for an accessible review, see @kahneman2013]. Altogether these findings have led many researchers to abandon the notion that degrees of belief are represented as probabilities.
 
 Recently however, two groups of researchers have proposed theories of human probability judgments that account for biases in these judgments while maintaining that mental credences are fundamentally probabilistic [@costello.watts2014; @zhu.etal2020]. Both of these theories build on the increasingly popular notion that a variety of human reasoning tasks are accomplished by a limited process of mental "sampling" from a probabilistic mental model [see also @chater.etal2020; @dasgupta.etal2017]. 
 
@@ -86,9 +85,9 @@ Thus under the simplest form of the PT+N model, the expected value of probabilit
 
 $$E[\hat{P}_{PT+N}(A)] = (1-2d)P(A) + d $$
 
-By assumption, a maximum of 50% of samples can be misread, so that $d$ is a number in the range $[0, 1/2]$. The PT+N theory provides a unified accounts for a wide variety of biases in probability judgment that were previously attributed to different types of heuristics, as well as novel biases identified based on the model's predictions [@costello.watts2014; @costello.watts2016; @costello.watts2017; @costello.watts2018].
+By assumption, a maximum of 50% of samples can be misread, so that $d$ is a number in the range $[0, 1/2]$. The PT+N theory provides a unified account for a wide variety of biases in probability judgment that were previously attributed to different types of heuristics, as well as novel biases identified based on the model's predictions [@costello.watts2014; @costello.watts2016; @costello.watts2017; @costello.watts2018].
 
-Meanwhile, Zhu, Sanborn, & Chater [-@zhu.etal2020] have proposed a Bayesian model of probability judgment they call the "Bayesian Sampler." Under this model, probability judgment is itself seen as a process of Bayesian inference. To judge the probability of an event, a limited number of samples are again drawn from a mental model of the event. Then, those "observed" samples are integrated with a prior over probabilities to produce a probability judgment. This prior takes the form of a symmetric Beta distribution parameterized by $\beta$. After observing $S(A)$ successes and $N - S(A)$ failures, the posterior over probabilities is distributed $Beta(\beta + S(A), \beta + N - S(A))$. Zhu and colleagues [-@zhu.etal2020] assume that people report the mean of their posterior probability estimates. Since for any Beta distribution $x \sim Beta(a,b)$, $E[x] = \frac{a}{a+b}$, the probability estimate is thus a linear function of S, N, and $\beta$.
+Meanwhile, Zhu, Sanborn, & Chater [-@zhu.etal2020] have proposed a Bayesian model of probability judgment they call the "Bayesian Sampler." Under this model, probability judgment is itself seen as a process of Bayesian inference. To judge the probability of an event, a limited number of samples are again drawn from a mental model of the event. Then, those "observed" samples are integrated with a prior over probabilities to produce a probability judgment. This prior takes the form of a symmetric Beta distribution, $Beta(\beta, \beta)$. After observing $S(A)$ successes and $N - S(A)$ failures, the posterior over probabilities is distributed $Beta(\beta + S(A), \beta + N - S(A))$. Zhu and colleagues [-@zhu.etal2020] assume that people report the mean of their posterior probability estimates. For any Beta distribution $x \sim Beta(a,b)$, $E[x] = \frac{a}{a+b}$. So, the expected probability estimate is a linear function of S, N, and $\beta$.
 
 $$\hat{P}_{BS}(A) = \frac{S(A)}{N+2\beta} + \frac{\beta}{N+2\beta}$$
 
@@ -104,7 +103,7 @@ Thus, the effect of a Bayesian prior is nearly identical to the effect of noise 
 
 ### Two accounts of conditional probability judgments
 
-By explaining the incoherence of human probability judgments using coherent mental probabilities, both models have the potential to rescue the larger project of Bayesian cognitive science as applied to everyday beliefs [@chater.etal2020]. However, the two models diverge substantially in their treatment of conditional probability judgments. Bayesian cognitive theories are fundamentally theories of inductive reasoning: Bayes' rule describes how existing beliefs should be updated conditional on the observation of different kinds of evidence. So, how they treat the conditioning of beliefs is at the heart of these theories. 
+By explaining the incoherence of human probability judgments using coherent mental probabilities, both models have the potential to rescue the larger project of Bayesian cognitive science as applied to everyday beliefs [@chater.etal2020]. However, the two models diverge substantially in their treatment of conditional probability judgments. Bayesian cognitive theories are fundamentally theories of inductive reasoning: Bayes' rule describes how existing beliefs should be updated conditional on the observation of different kinds of evidence. So, treatment of the conditioning of beliefs is at the heart of these theories. 
 
 According to the Bayesian sampler model, conditioning is something that happens in the mental model of the events, not as part of the process of rendering probability judgments. By not assigning any special status to conditional probability judgments, the Bayesian Sampler theory fits neatly into the larger Bayesian project of cognitive science: probability judgments are simply another judgment process applied to the outputs of other (ideally Bayesian) mental models [@chater.etal2020]. 
 
@@ -112,7 +111,7 @@ In contrast, the PT+N model presents a constructive account of conditional proba
 
 $$P_e(A|B) = \frac{(1-2d)^2P(A \land B) + d(1-2d)\big(P(A)+P(B)\big)+d^2}{(1-2d)P(B)+d}$$
 
-The PT+N’s account of conditional probability judgment is distinctly non-Bayesian, separating it quite fundamentally from the Bayesian Sampler and the larger project of Bayesian cognitive science.
+This non-Bayesian account of conditional probabiliity judgments separates the PT+N theory quite fundamentally from the Bayesian Sampler and the larger project of Bayesian cognitive science.
 
 ## Comparing the models
 
@@ -130,7 +129,7 @@ t1_df %>%
   row_spec(1, bold=TRUE)
 ```
 
-In both experiments, the simple version of the Bayesian Sampler scores best, but the complex version of the PT+N model comes in second (lower BIC scores are better). It is not obvious what conclusions should be drawn from these results. Of course, the simple Bayesian Sampler model appears to win by the numbers. But conjunction fallacies are an extremely robust empirical finding [@mellers.etal2001; @sides.etal2002] and are clearly present in the data collected by Zhu and colleagues [-@zhu.etal2020]. So we might justifiably rule out the simple variants of the models on the grounds that they will fail to capture important qualitative features of the data, which could instead favor the PT+N theory. For their part, Zhu and colleagues [-@zhu.etal2020] elect to split the baby by averaging the simple and complex model scores together. This approach somewhat favors the Bayesian Sampler theory overall, though they are cautious about drawing any strong conclusions in favor of their theory.
+In both experiments, the simple version of the Bayesian Sampler scores best, but the complex version of the PT+N model comes in second (lower BIC scores are better). It is not obvious what conclusions should be drawn from these results. Of course, the simple Bayesian Sampler model appears to win by the numbers. But conjunction fallacies are an extremely robust empirical finding [@mellers.etal2001; @sides.etal2002] and are clearly present in the data collected by Zhu and colleagues [-@zhu.etal2020]. So we might justifiably rule out the simple variants of the models on the grounds that they will fail to capture important qualitative features of the data, which could instead favor the PT+N theory. For their part, Zhu and colleagues [-@zhu.etal2020] chose to average the simple and complex model scores together. This approach somewhat favors the Bayesian Sampler theory overall, though they are cautious about drawing any strong conclusions in favor of their theory.
 
 ### Accounting for Model Complexity
 
@@ -144,7 +143,7 @@ Finally, one potential explanation for the relative weakness of the "complex" mo
 
 ### The present work
 
-Here, I cast both the Bayesian Sampler and PT+N models into a Bayesian data analysis framework that may permit a more decisive comparison. First, Bayesian data analysis allows issues of model complexity to be addressed through comparisons of model fit based on information criteria, such as ${\text{WAIC}}$ and $\text{LOO}_{ic}$. Both of these indices approximate leave-one-out cross validation, thereby offering a measure of the ability of a model to capture new unseen data. Importantly, these indices also allow for complexity penalties that directly capture differences in the flexibility of the models, instead of being estimated based solely on the number of distinct parameters [@gelman.etal2014; @vehtari.etal2017]. In addition, the Bayesian framework also supports straightforward implementation of hierarchical versions of these models with partial pooling. This allows for information about model parameters to be shared across participants, resulting in a potential reduction in model complexity and a more realistic test of the models.
+Here, I cast both the Bayesian Sampler and PT+N models into a Bayesian data analysis framework that may permit a more decisive comparison. First, Bayesian data analysis allows issues of model complexity to be addressed through comparisons of model fit based on information criteria, such as the widely-applicable information criterion (${\text{WAIC}}$) and Pareto smoothed importance sampling approximate leave-one-out cross validation ($\text{PSIS-LOO}$). These approaches measure the ability of a model to capture new unseen data by estimating the expected log predictive density ($\widehat{\text{elpd}}$) of the model, or the expected probability of new unseen data. Importantly, these the methods for computing the $\widehat{\text{elpd}}$ penalize model complexity in a way that directly captures differences in the flexibility of the models, instead of being estimated based solely on the number of distinct parameters [@gelman.etal2014; @vehtari.etal2017]. In addition, the Bayesian framework also supports straightforward implementation of hierarchical versions of these models with partial pooling. This allows for information about model parameters to be shared across participants, resulting in a potential reduction in model complexity and a more realistic test of the models.
 
 # Methods
 
@@ -162,7 +161,7 @@ I implement several variants of the Bayesian Sampler and PT+N models in a Bayesi
 
 ### Bayesian implementations of the models
 
-The PT+N model defines probability judgments as:
+The PT+N model defines expected probability judgments ($P_e$) as:
 
 \begin{align*}
   P_{e}(A) &= (1-2d)P(A) + d \\
@@ -171,12 +170,13 @@ The PT+N model defines probability judgments as:
   P_e(A|B) &= \frac{(1-2d)^2P(A \land B) + d(1-2d)\big(P(A)+P(B)\big)+d^2}{(1-2d)P(B)+d}
 \end{align*}
 
-In contrast, the Bayesian Sampler model defines probability judgments as:
+In contrast, the Bayesian Sampler model defines expected probability judgments as:
 
 \begin{align*}
   P_{e}(A) &= \frac{N}{N + 2 \beta}P(A) + \frac{\beta}{N+2 \beta} \\
   P_{e}(A \land B) &= \frac{N’}{N’ + 2 \beta}P(A \land B) + \frac{\beta}{N’+2 \beta} \\
-  P_{e}(A \lor B) &= \frac{N’}{N’ + 2 \beta}P(A \lor B) + \frac{\beta}{N’+2 \beta} 
+  P_{e}(A \lor B) &= \frac{N’}{N’ + 2 \beta}P(A \lor B) + \frac{\beta}{N’+2 \beta} \\
+  P_{e}(A|B) &= \frac{N}{N + 2 \beta}P(A|B) + \frac{\beta}{N+2 \beta}
 \end{align*}
 
 Fixing $d$ and $d'$ or $N$ and $N'$ equal yields the "simple" variant of each of the models, which treat conjunctive and disjunctive probability judgments identically to simple probability judgments.
@@ -194,14 +194,14 @@ Zhu, Sanborn & Chater (2020) implement completely unpooled models with separate 
     \flushleft
     \small
     \begin{align*}
-      y_{ijk} &\sim beta\big(\mu_{ijk} \kappa, (1-\mu_{ijk}) \kappa \big) \\
+      y_{ijk} &\sim Beta\big(\mu_{ijk} \kappa, (1-\mu_{ijk}) \kappa \big) \\
       \mu_{ijk} &= f_{PT+N}(\overrightarrow{p_{jk}}, d_j, d_j)  \\
-      d_j &= \frac{expit(\delta_j)}{2} \\
-      d_j’ &= \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{2} \\
+      d_j &= \frac{1}{2} \ \text{logistic}(\delta_j) \\
+      d_j’ &= \frac{1}{2} \ \text{logistic}\big(\delta_j + \exp(\Delta\delta_j)\big) \\
       \overrightarrow{p_{jk}} &\sim Dirichlet(\overrightarrow{1}) \\
       \delta_j &\sim Normal(0,1) \\
       \Delta\delta_j &\sim Normal(0,1) \\
-      \kappa &\sim HalfCauchy(20)
+      \kappa &\sim \mathit{Half \hyph Cauchy}(20)
     \end{align*}
   \end{minipage}
   \caption{Complex unpooled PT+N model diagram and formula specifications. Circular nodes are parameters, shaded nodes are observations, and squared nodes are deterministic functions of parameters. Plates signify values defined for $i$ trials, $j$ participants, and $k$ conditions.}
@@ -210,14 +210,14 @@ Zhu, Sanborn & Chater (2020) implement completely unpooled models with separate 
 
 The function $f_{PT+N}$ computes the expected probability estimate using the underlying subjective probability $p$, the noise parameters $d$  and $d'$, and the relevant equation as defined by the PT+N theory (see supplemental materials for implementation details). Prior predictive checks were conducted for all models to select priors that would be uninformative or minimally informative on the scale of the model parameters $d$  and $d'$.
 
-Recall that Zhu and colleagues (2020) identified a bridging condition relating $\beta$ and $N$ in the Bayesian Sampler model to the $d$ parameter of the PT+N model. To support direct comparisons of the models, I parameterize the Bayesian Sampler model according to the implied $d$  and $d'$, rather than directly according to its $\beta$, $N$, and $N'$ parameters. I constrain $d$ to $[0, 1/3]$ for the Bayesian Sampler model to reflect the assumption that $\beta \in [0, 1]$. This allows the same priors to be used for the corresponding Bayesian Sampler and PT+N models, simplifying their comparison. 
+Recall that Zhu and colleagues [-@zhu.etal2020] identified a bridging condition relating $\beta$ and $N$ in the Bayesian Sampler model to the $d$ parameter of the PT+N model. To support direct comparisons of the models, I parameterize the Bayesian Sampler model according to the implied $d$  and $d'$, rather than directly according to its $\beta$, $N$, and $N'$ parameters.^[Strictly speaking, under the original form of the Bayesian sampler model, $N$ and $N'$ are discrete parameters representing the number of distinct independent samples drawn. Given a particular implied $d$, this could create constraints on the possible values of $d'$, assuming $\beta$ is held constant. However, Zhu and colleagues [-@zhu.etal2020] also consider the possibility that people draw non-independent mental samples, in which case $N$ and $N'$ would represent the _effective number of samples_, accounting for their autocorrelation. In this case, we could treat this effective number of samples as a continuous quantity, and therefore imagine there are no clear constraints on $d$ and $d'$ except the stipulation that $d \leq d'$.] I constrain $d$ to $[0, 1/3]$ for the Bayesian Sampler model to reflect the assumption that $\beta \in [0, 1]$. This allows the same priors to be used for the corresponding Bayesian Sampler and PT+N models, simplifying their comparison. 
 
 The Bayesian Sampler model is therefore identical to the PT+N model save for the changes to $\mu_{ijk}$, $d$, and $d'$ shown below:
 
 \begin{align*}
   \mu_{ijk} &= f_{BS}(\overrightarrow{p_{jk}}, d_j, d_j)  \\
-  d_j &= \frac{expit(\delta_j)}{3} \\
-  d_j’ &= \frac{expit\big(\delta_j + \exp(\Delta\delta_j)\big)}{3}
+  d_j &= \frac{1}{3} \ \text{logistic}(\delta_j) \\
+  d_j’ &= \frac{1}{3} \ \text{logistic}\big(\delta_j + \exp(\Delta\delta_j)\big)
 \end{align*}
 
 Where the function $f_{BS}$ computes the expected probability estimate as prescribed by the Bayesian Sampler theory. 
@@ -243,7 +243,7 @@ Finally, I also explored fitting versions of the Bayesian Sampler model that all
 
 # Results
 
-I fit each of the models specified above to data from Zhu et al’s [-@zhu.etal2020] Experiment 1 and 2 and computed $\text{LOO}_{ic}$ scores for each combination. Compared with BIC, $\text{LOO}_{ic}$ offers a more sophisticated estimation of model complexity and is more appropriate in the "$\mathcal{M}$-open" case; situations where we do not know if any of the models being compared are the "true" model [@vehtari.etal2019]. Model posteriors were estimated using the Numpyro [@phan.etal2019] implementation of the No-U-Turn Hamiltonian Markov chain Monte Carlo (MCMC) sampler. For each model, four MCMC chains of 2000 iterations were sampled after 2000 iterations of warmup and all passed convergence tests according to $\hat{R}$ [see @gelman.etal2014a]. Figure 3 below displays the estimated differences in $\text{LOO}_{ic}$ scores for each of the models as compared to the best-scoring model.
+I fit each of the models specified above to data from Zhu et al’s [-@zhu.etal2020] Experiment 1 and 2 and estimated the expected log predictive density with PSIS-LOO ($\widehat{\text{elpd}}_{\text{LOO}}$) for each combination. Compared with BIC, $\widehat{\text{elpd}}_{\text{LOO}}$ offers a more sophisticated estimation of model complexity and is more appropriate in the "$\mathcal{M}$-open" case; situations where we do not know if any of the models being compared are the "true" model [@vehtari.etal2019]. Model posteriors were estimated using the Numpyro [@phan.etal2019] implementation of the No-U-Turn Hamiltonian Markov chain Monte Carlo (MCMC) sampler. For each model, four MCMC chains of 2000 iterations were sampled after 2000 iterations of warmup and all passed convergence tests according to $\hat{R}$ [see @gelman.etal2014a]. Figure 3 below displays the estimated differences in $\widehat{\text{elpd}}_{\text{LOO}}$ scores for each of the models as compared to the best-scoring model.
 
 \begin{figure}[ht]
 \centering
@@ -251,11 +251,11 @@ I fit each of the models specified above to data from Zhu et al’s [-@zhu.etal2
 \caption[]{Model comparison results for data from Experiments 1 and 2. Error bars indicate two standard errors of the estimates. Typically, a difference of greater than two standard errors is taken as clear evidence for the superiority of the lower-scoring model (\cite{sivula.etal2020}).}
 \end{figure}
 
-Data from Experiment 1 favor "complex" variants of the Bayesian Sampler model compared with the "simple" variants and all versions of the PT+N model. However, there is no clear winner. The beset-scoring model is an unrestricted variant of the Bayesian Sampler allows for people to bring informative priors to the probability judgment task (again, lower scores for $\text{LOO}_{ic}$ are better). That is, a Bayesian Sampler model without any restriction on $\beta$, allowing it to range from [0, $\infty$]. However, the complex and complex hierarchical implementations of the Bayesian Sampler assuming uninformative priors (i.e., restricting $\beta \in [0,1]$) have $\text{LOO}_{ic}$ scores within two standard errors of the difference, indicating that these models are also plausible [@sivula.etal2020].
+Data from Experiment 1 favor "complex" variants of the Bayesian Sampler model compared with the "simple" variants and all versions of the PT+N model. However, there is no clear single winner. As shown in Figure 3, the best-scoring model is an unrestricted variant of the Bayesian Sampler allows for people to bring informative priors to the probability judgment task, that is, a Bayesian Sampler model allowing $\beta \in [0, \infty]$ (greater values of $\widehat{\text{elpd}}_{\text{LOO}}$ are better). However, the complex and complex hierarchical implementations of the Bayesian Sampler assuming uninformative priors (i.e., restricting $\beta \in [0,1]$) have $\widehat{\text{elpd}}_{\text{LOO}}$ scores within two standard errors of the difference, indicating that these models are also plausible [@sivula.etal2020].
 
 Data from Experiment 2 more decisively reveal a single winning model: the hierarchical "unrestricted" implementation of the Bayesian Sampler model allowing for informative priors.
 
-Figure 4 shows the posterior distributions of the population-level $d$ and $d'$ parameters inferred from the unrestricted Bayesian Sampler model. In Experiment 2, population-level estimates of $d$  and $d'$ are greater than $1/3$, outside the range implied by the assumption of "ignorance priors" in the Bayesian Sampler model. Parameters fit to the data from Experiment 1 are more consistent with this assumption, although a substantial proportion of individual participants’ $d$  and $d'$ estimates also lie outside this range (13 of 59 for d, 26 of 59 for $d'$). The finding that there are clear differences in $d$  and $d'$ estimated across experiments suggest that the mental sampling processes producing estimates vary in the different conditions, either in terms of the number of samples that are drawn, the noise in reading those samples, or the form of the prior distribution assumed by participants in each context.
+Figure 4 shows the posterior distributions of the population-level $d$ and $d'$ parameters inferred from the unrestricted Bayesian Sampler model. In Experiment 2, population-level estimates of $d'$ are greater than $1/3$, as are a substantial number of participant-level estimates for $d$ (37 of 83). These values fall outside the range implied by the assumption of "ignorance priors" in the Bayesian Sampler model. Parameters fit to the data from Experiment 1 are more consistent with this assumption, although a substantial proportion of individual participants’ $d$  and $d'$ estimates also lie outside this range (11 of 59 for $d$, 18 of 59 for $d'$). The finding that there are clear differences in $d$  and $d'$ estimated across experiments suggest that the mental sampling processes producing estimates vary in the different conditions, either in terms of the number of samples that are drawn, the noise in reading those samples, or the form of the prior distribution assumed by participants in each context.
 
 \begin{figure}[ht]
 \centering
@@ -263,11 +263,13 @@ Figure 4 shows the posterior distributions of the population-level $d$ and $d'$ 
 \caption{Posterior density of population-level $d$  and $d'$ parameters estimated from the unrestricted hierarchical Bayesian Sampler model for data from Experiments 1 and 2. Dashed line indicates theoretical maximum values for Bayesian Sampler model with uninformative priors.}
 \end{figure}
 
-Recall, the unrestricted Bayesian Sampler model may also be seen as a version of the PT+N theory that removes the original theory’s constructive account of conditional probability judgments. So, comparing the PT+N models to the unrestricted Bayesian Sampler model offers a test of the PT+N's constructive account of conditional probability jugments. Comparing predictions from the unrestricted Bayesian Sampler model and the best-fitting PT+N model, we see that the Bayesian Sampler model better captures these judgments from both experiments (see Table 2). And comparing their prediction specifically for conditional probability judgments, the unrestricted Bayesian Sampler provides a better fit, especially for the modestly-correlated events of experiment 2 (Exp 1: response-level $r$ = .91 vs. .89; query-level $r$ = .98 vs. .97; Exp 2: response-level $r$ = .72 vs. .67; query-level $r$ = .92 vs. .85) These findings suggest that conditioning is better seen as part of the mental model than the probability judgment process. Compared to the Bayesian Sampler model, the PT+N model with its constructive account of conditional probability judgments has a similar penalty term estimate when fit to Experiment 1, but has a smaller penalty term when fit to Experiment 2, despite having the same parameterization in terms of $d$  and $d'$. Evidently this structural component isn’t a complexifying epicycle, instead it is better seen as a prediction that constrains flexibility. However, it is one that ultimately leads to a worse-fitting model.
+Recall, the unrestricted Bayesian Sampler model may also be seen as a version of the PT+N theory that removes the original theory’s constructive account of conditional probability judgments. So, comparing the PT+N models to the unrestricted Bayesian Sampler model offers a test of the PT+N's constructive account of conditional probability jugments. Comparing predictions from the unrestricted Bayesian Sampler model and the best-fitting PT+N model, we see that the Bayesian Sampler model better captures these judgments from both experiments (see Table 2). And comparing their prediction specifically for conditional probability judgments, the unrestricted Bayesian Sampler again provides a better fit, especially for the modestly-correlated events of Experiment 2 (Exp 1: response-level $r$ = .91 vs. .89; query-level $r$ = .98 vs. .97; Exp 2: response-level $r$ = .72 vs. .67; query-level $r$ = .92 vs. .85) These findings suggest that conditioning is better seen as part of a mental model of the events than as part of the probability judgment process. 
+
+Compared to the Bayesian Sampler model, the PT+N model with its constructive account of conditional probability judgments has a similar penalty term estimate when fit to Experiment 1, but has a smaller penalty term when fit to Experiment 2, despite having the same parameterization in terms of $d$  and $d'$. Evidently this structural component isn’t a complexifying epicycle, instead it is better seen as a prediction that constrains flexibility. However, it is one that ultimately leads to a worse-fitting model.
 
 Perhaps surprisingly, the Bayesian Sampler with unrestricted $\beta$ actually receives a smaller penalty term than the more "restricted" version of the model for the data in Experiment 2. This is at first counterintuitive, but it illustrates how model complexity depends not only on the model and priors, but also the observed data [see @gelman.etal2014]. To illustrate, Gelman and colleagues consider a case where a parameter is constrained to be positive and its value is then estimated from data [-@gelman.etal2014]. If the estimated value is some very large positive number, then the constraint won’t have been very informative. But, if the estimated value is very close to zero, then the constraint that the parameter is positive will provide substantial information and the model’s penalty term will therefore be smaller. Here, it seems reasonable to conjecture that because the implied $d$  and $d'$ estimated for this data under this model are both very near $1/3$, the restriction results in posterior estimates of the linear parameters that are relatively far from the prior, which can result in a greater penalty.
 
-The dependence of complexity penalties on observed data may strike some as an undesirable feature of model comparison through information criteria. Indeed, it is worth acknowledging that principled model comparison is still an area of active inquiry, with differing perspectives [e.g.  @gronau.wagenmakers2019; @vehtari.etal2019]. Fortunately, conclusions from the comparisons here do not rest solely on differences between the models’ complexity. 
+The dependence of complexity penalties on observed data may strike some as an undesirable feature of model comparison through information criteria. Indeed, it is worth acknowledging that principled model comparison is still an area of active inquiry, with differing perspectives [e.g.  @gronau.wagenmakers2019; @vehtari.etal2019]. 
 
 ```{r table2, echo=FALSE, message=F, warning=F}
 ### NOTE: be sure to rescale elppd_loo to deviance scale to report as loo_ic 10/15/21, 2:37 PM
@@ -283,7 +285,7 @@ t2_df %>%
     caption="Bayesian model comparison results with best scoring model in bold face.", 
     digits=3, 
     booktabs=T,
-    col.names = c("Model", "$LOO_{ic}$", "Penalty","$r_{resp}$", "$r_{query}$", "$LOO_{ic}$", "Penalty","$r_{resp}$", "$r_{query}$"),
+    col.names = c("Model", "$\\widehat{\\text{elpd}}_{\\text{LOO}}$", "Penalty","$r_{resp}$", "$r_{query}$", "$\\widehat{\\text{elpd}}_{\\text{LOO}}$", "Penalty","$r_{resp}$", "$r_{query}$"),
     escape = F
     ) %>%
   add_header_above(c(" ", "Experiment 1"=4, "Experiment 2"=4)) %>% 
@@ -298,14 +300,11 @@ Finally, it is worth noting that the best of these models provide quite strong o
 
 By a fair margin, the model best accounting for the experimental data from Zhu and colleagues [-@zhu.etal2020] was a version of the Bayesian Sampler model without restriction on the range of its $\beta$ parameters. Alternatively, this model can also be seen as a variant of the PT+N model that removes its account of conditional probability judgments. Thus, what these findings indicate most clearly is that the Bayesian Sampler theory provides a superior account of conditional probability judgments in this task. In keeping with the larger theoretical framework of Bayesian cognitive science, the Bayesian Sampler theory assumes that subjective probabilities underlie people’s probability judgments, and that conditional probability judgments are produced by Bayesian conditioning occurring in their mental models of the events in question, rather than as arising from the probability judgment process [@chater.etal2020; @zhu.etal2020].
 
-Zhu and colleagues’ findings do cast some doubt on their proposal that the priors of the Bayesian Sampler model should reflect "ignorance priors," symmetric Beta distributions with $\beta \in [0, 1]$. As a generic prior that would be used across contexts, this class of uninformative priors has an appealing rational basis. Nevertheless, the data suggest that people may bring informative priors to the probability judgment task, indicated by estimated $d$  and $d'$ parameters outside the $[0, 1/3]$ range implied by "ignorance" priors. It could be that people bring domain-specific priors to judgment tasks, meaning that the most appropriate priors might be dictated by the context in which they make their judgments. This could potentially account for the differences in $d$ and $d'$ observed across Experiments 1 and 2. 
+Zhu and colleagues’ findings do cast some doubt on their proposal that the priors of the Bayesian Sampler model should reflect "ignorance priors," symmetric Beta distributions with $\beta \in [0, 1]$. As a generic prior that would be used across contexts, this class of uninformative priors has an appealing rational basis. Nevertheless, many participants' estimated $d$ and $d'$ parameters fell outside the $[0, 1/3]$ range implied by "ignorance" priors. These data suggest that people may instead bring informative priors to some probability judgment tasks. Given the different values of $d$ and $d'$ across Experiments 1 and 2, it seems likely that people bring domain-specific priors to judgment tasks, meaning that the most appropriate priors might be dictated by the context in which they make their judgments.
 
-In addition, the implied $d$ and $d'$ noise parameters also varied across individuals. Of note, even in Experiment 2, some participant's implied $d$ and $d'$ parameters were consistent with the class of ignorance priors (see supplemental materials). Further research should explore this heterogeneity within and across individuals. Unfortunately, pinning down specific components of the Bayesian Sampler model is a challenge, as the $\beta$ and $N$ parameters are not uniquely identifiable from judgment data of the sort examined here. 
+In addition, the implied $d$ and $d'$ noise parameters also varied across individuals. Of note, some participant's implied $d$ and $d'$ parameters _were_ consistent with the class of ignorance priors, even in Experiment 2 (see supplemental materials). Further research should explore this heterogeneity within and across individuals. Unfortunately, pinning down specific components of the Bayesian Sampler model is a challenge, as the $\beta$ and $N$ parameters are not uniquely identifiable from judgment data of the sort examined here. 
 
-One thing this model comparison has not decided, and likely *cannot* decide, is whether the distortions of probability judgments are products of mental noise or of further reasoning processes. Given the models' tight connections via the bridging condition [@zhu.etal2020], it may not be possible to draw decisive conclusions here. Moreover, the theories may not be in any real competition over this point: Zhu and colleagues consider that "noise" might give an algorithmic-level solution to the computation-level task defined by the Bayesian Sampler [-@zhu.etal2020]. 
+One thing this model comparison has not decided, and likely *cannot* decide, is whether the distortions of probability judgments are products of mental noise or of further reasoning processes. Given the two models' tight connections via the bridging condition [@zhu.etal2020], it may not be possible to draw decisive conclusions here. Moreover, the theories may not be in any real competition over this point: Zhu and colleagues consider that "noise" might give an algorithmic-level solution to the computation-level task defined by the Bayesian Sampler [-@zhu.etal2020]. 
 
 Finally, some of the most interesting implications of these models go well beyond the probability judgment task itself: the models both support a probabilistic account of beliefs [@chater.etal2020]. Indeed, by representing the "true" subjective probabilities as a latent variable, Bayesian data analysis allows those underlying credences to be inferred. Examining the model posteriors here reveals these estimates often come with considerable uncertainty, but at least for some participants they can be estimated with useful levels of precision. Of course, Zhu and colleagues’ [-@zhu.etal2020] experiments were never designed for this purpose. Future research could explore how estimates of people's credences might be made more reliable, and how inferences about these mental probabilities might be integrated with other Bayesian models of reasoning [e.g. @franke.etal2016; @jern.etal2014; @griffiths.tenenbaum2006]. One particularly promising direction could be to integrate these models with formal models of belief revision, which might then shed new light on these fundamental cognitive processes [e.g. @cook.lewandowsky2016; @jern.etal2014; @powell.etal2018].
 
-\newpage
-
-# References
