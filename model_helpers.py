@@ -58,6 +58,30 @@ def load_data_exp2():
 
     return df
 
+def load_data_exp2_trials():
+    df = load_raw_data(2)
+    
+    df["condition"] = np.select(
+    [
+        df.querydetail.str.contains("windy|cloudy"), 
+        df.querydetail.str.contains("cold|rainy"),
+        df.querydetail.str.contains("warm|snowy")
+
+    ], 
+    [
+        0,
+        1,
+        2
+    ], 
+    default=0 )
+    
+    original_ids = list(np.unique(df.ID))
+    fix_id_dict = {original_ids[i]:i for i in range(0, len(original_ids))}
+    
+    df = df.assign(ID = df.ID.apply(lambda x: fix_id_dict[x]))
+
+    return df
+
 
 def load_query_avg_data_exp1():
     df = (
@@ -98,17 +122,31 @@ def load_query_avg_data_all():
     
 
 def make_model_data(data):
+    # for averaged data
 
     X_data = {
         "trial": data.querytype,
         "subj": jnp.array(list(data.ID)),
-        "cond": jnp.array(list(data.condition), dtype="int32"),
+        "cond": jnp.array(list(data.condition), dtype="int32")
     }
 
     y_data = jnp.array(data.estimate.to_numpy())
     
     return X_data, y_data
 
+def make_model_data_trials(data):
+    # for trial-level (non-averaged) data
+
+    X_data = {
+        "trial": data.querytype,
+        "subj": jnp.array(list(data.ID)),
+        "cond": jnp.array(list(data.condition), dtype="int32"),
+        "block": jnp.array(list(data.block), dtype="int32"),
+    }
+
+    y_data = jnp.array(data.estimate.to_numpy())
+    
+    return X_data, y_data
 
 ### -------- Simulation functions
 
@@ -135,8 +173,8 @@ trial_funcs = dict({
     "notB":lambda theta: jnp.matmul(theta, jnp.array([0.,1.,0.,1.])),
     "AorB":lambda theta: jnp.matmul(theta, jnp.array([1.,1.,1.,0.])),
     "AornotB":lambda theta: jnp.matmul(theta, jnp.array([1.,1.,0.,1.])),
-    "notAorB":lambda theta: jnp.matmul(theta, jnp.array([0.,1.,1.,1.])),
-    "notAornotB":lambda theta: jnp.matmul(theta, jnp.array([0.,1.,0.,1.])),
+    "notAorB":lambda theta: jnp.matmul(theta, jnp.array([1.,0.,1.,1.])), # fixed 6/23/22, 10:52 AM
+    "notAornotB":lambda theta: jnp.matmul(theta, jnp.array([0.,1.,1.,1.])), # fixed 6/23/22, 10:52 AM
     
     "AgB": lambda theta: jnp.divide( jnp.matmul(theta, jnp.array([1.,0.,0.,0.])), jnp.matmul(theta, jnp.array([1.,0.,1.,0.])) ),
     "notAgB": lambda theta: jnp.divide( jnp.matmul(theta, jnp.array([0.,0.,1.,0.])), jnp.matmul(theta, jnp.array([1.,0.,1.,0.])) ),

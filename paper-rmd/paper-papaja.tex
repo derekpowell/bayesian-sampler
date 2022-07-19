@@ -100,6 +100,20 @@
 % \setlength{\parindent}{0.5in}
 % \setlength{\parskip}{0pt plus 0pt minus 0pt}
 
+% Overwrite redefinition of paragraph and subparagraph by the default LaTeX template
+% See https://github.com/crsh/papaja/issues/292
+\makeatletter
+\renewcommand{\paragraph}{\@startsection{paragraph}{4}{\parindent}%
+  {0\baselineskip \@plus 0.2ex \@minus 0.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries\itshape\typesectitle}}
+
+\renewcommand{\subparagraph}[1]{\@startsection{subparagraph}{5}{1em}%
+  {0\baselineskip \@plus 0.2ex \@minus 0.2ex}%
+  {-\z@\relax}%
+  {\normalfont\normalsize\itshape\hspace{\parindent}{#1}\textit{\addperi}}{\relax}}
+\makeatother
+
 % \usepackage{etoolbox}
 \makeatletter
 \patchcmd{\HyOrg@maketitle}
@@ -111,8 +125,16 @@
   {\section*{\protect\normalfont{\@title}}}
   {}{\typeout{Failed to patch title.}}
 \makeatother
-\shorttitle{Comparing probability judgment accounts}
-\keywords{probability judgments, Bayesian cognitive science, heuristics and biases\newline\indent Word count: 4826}
+
+\usepackage{xpatch}
+\makeatletter
+\xapptocmd\appendix
+  {\xapptocmd\section
+    {\addcontentsline{toc}{section}{\appendixname\ifoneappendix\else~\theappendix\fi\\: #1}}
+    {}{\InnerPatchFailed}%
+  }
+{}{\PatchFailed}
+\keywords{probability judgments, Bayesian cognitive science, heuristics and biases\newline\indent Word count: 5088}
 \usepackage{csquotes}
 \usepackage{tikz}
 \usetikzlibrary{bayesnet}
@@ -138,15 +160,19 @@
 \date{}
 
 
+\shorttitle{Comparing probability judgment accounts}
+
 \authornote{
 
-This manuscript has not yet been peer-reviewed. This study reports secondary data analyses and was not preregistered.
+This manuscript has not yet been peer-reviewed. This study reports secondary analyses of data a and was not preregistered.
+
+Correspondence concerning this article should be addressed to Derek Powell, 4701 W Thunderbird Rd, Phoenix AZ 85306. E-mail: \href{mailto:dmpowell@asu.edu}{\nolinkurl{dmpowell@asu.edu}}
 
 }
 
 \affiliation{\vspace{0.5cm}\textsuperscript{1} Arizona State University, School of Social and Behavioral Sciences}
 
-\abstract{
+\abstract{%
 Bayesian theories of cognitive science hold that cognition is fundamentally probabilistic, but people's explicit probability judgments often violate the laws of probability. Two recent proposals, the ``Probability Theory plus Noise'' \autocite{costello.watts2014} and ``Bayesian Sampler'' \autocite{zhu.etal2020} theories of probability judgments, both seek to account for these biases while maintaining that mental credences are fundamentally probabilistic. These theories fit quite differently into the larger project of Bayesian cognitive science, but their many similarities complicate comparisons of their predictive accuracy. In particular, comparing the models demands a careful accounting of model complexity. Here, I cast these theories into a Bayesian data analysis framework that supports principled model comparison using information criteria. Comparing the fits of both models on data collected by Zhu and colleagues \autocite*{zhu.etal2020} I find the data are best explained by a modified version of the Bayesian Sampler model under which people may hold informative priors about probabilities.
 }
 
@@ -159,9 +185,9 @@ Bayesian theories of cognition offer a unified formal framework for cognitive sc
 
 Trouble starts as soon as we attempt to measure beliefs. According to Bayesian theories of cognition and epistemology \autocite{jaynes2003}, the degree to which people believe in various propositions, or their credences, should reflect subjective mental probabilities. So asking people to express beliefs in terms of probability seems only natural.
 
-Unfortunately, people's explicit probability judgments routinely violate the most basic axioms of probability theory. For example, human probability judgments often exhibit the ``conjunction fallacy'': people will often judge the conjunction of two events (e.g.~``Tom Brady likes football and miniature horses'') as being more probable than one of the events in isolation (e.g.~``Tom Brady likes miniature horses''), a plain and flagrant violation of probability theory \autocite{tversky.kahneman1983}. Other demonstrations of the incoherence of probability judgments include disjunction fallacies, subadditivity or ``unpacking'' effects \autocite{tversky.koehler1994}, and a variety of other findings illustrating the incoherence of human probability judgments \autocite[for an accessible review, see][]{kahneman2013}. Altogether these findings have led many researchers to abandon the notion that degrees of belief are represented as probabilities.
+Unfortunately, people's explicit probability judgments routinely violate the most basic axioms of probability theory. For example, human probability judgments often exhibit the ``conjunction fallacy'': people will often judge the conjunction of two events (e.g.~``Tom Brady likes football and miniature horses'') as being more probable than one of the events in isolation (e.g.~``Tom Brady likes miniature horses''), a plain and flagrant violation of probability theory \autocite{tversky.kahneman1983}. Other demonstrations of the incoherence of probability judgments include disjunction fallacies, subadditivity or ``unpacking'' effects \autocite{tversky.koehler1994}, and a number of others \autocite[for an accessible review, see][]{kahneman2013}. Altogether these findings have led many researchers to abandon the notion that degrees of belief are represented as probabilities.
 
-Recently however, two groups of researchers have proposed theories of human probability judgments that account for biases in these judgments while maintaining that mental credences are fundamentally probabilistic \autocite{costello.watts2014,zhu.etal2020}. Both of these theories build on the increasingly popular notion that a variety of human reasoning tasks are accomplished by a limited process of mental ``sampling'' from a probabilistic mental model \autocites[see also][]{chater.etal2020,dasgupta.etal2017}.
+Recently however, two groups of researchers have proposed theories of human probability judgments that account for biases in these judgments while maintaining that mental credences are fundamentally probabilistic \autocite{costello.watts2014,zhu.etal2020}. Both of these theories build on the increasingly popular notion that a variety of human reasoning tasks are accomplished by a limited process of mental ``sampling'' from a probabilistic mental model \autocites[see also][]{chater.etal2020,dasgupta.etal2017}.\footnote{It is worth noting that other non-sampling based approaches have been proposed to account for distortions in people's use of explicit probabilities in decision-making \autocites[e.g.][]{zhang.maloney2012,zhang.etal2020}. Further theorizing might extend these accounts to also describe the generation of probability estimates, so that a probabilistic account of beliefs might not rest entirely on the assumption of sampling from mental models.}
 
 \hypertarget{two-probabilistic-theories-of-probability-judgment}{%
 \subsection{Two probabilistic theories of probability judgment}\label{two-probabilistic-theories-of-probability-judgment}}
@@ -191,7 +217,7 @@ Like the PT+N model, the Bayesian Sampler model accounts for a wide array of bia
 
 \[d = \frac{\beta}{N+2\beta}\]
 
-Thus, the effect of a Bayesian prior is nearly identical to the effect of noise in the PT+N model. But, rather than merely perturbing people's probability judgments, this prior can be seen as regularizing these judgments away from extreme values. Zhu and colleagues \autocite*{zhu.etal2020} argue that such regularization can be adaptive in cases where only a small number of mental samples can be drawn. For instance, consider someone estimating the probability that they can swim across a lake, outrun an animal, or win a hand of poker: if a mental simulation of these events produces two samples indicating success, one might conclude these are all certain victories and thereby be too willing to assume risk. A regularizing prior pushes these estimates away from extremes, thereby promoting better decision-making when mental samples are sparse. However, this hedging comes at the cost of systematic incoherence and biases.
+Thus, in many cases the effect of a Bayesian prior is identical to the effect of noise in the PT+N model (at least in expectation). But, rather than merely perturbing people's probability judgments, this prior can be seen as regularizing these judgments away from extreme values. Zhu and colleagues \autocite*{zhu.etal2020} argue that such regularization can be adaptive in cases where only a small number of mental samples can be drawn. For instance, consider someone estimating the probability that they can swim across a lake, outrun an animal, or win a hand of poker: if a mental simulation of these events produces two samples indicating success, one might conclude these are all certain victories and thereby be too willing to assume risk. A regularizing prior pushes these estimates away from extremes, thereby promoting better decision-making when mental samples are sparse. However, this hedging comes at the cost of systematic incoherence and biases.
 
 \hypertarget{two-accounts-of-conditional-probability-judgments}{%
 \subsubsection{Two accounts of conditional probability judgments}\label{two-accounts-of-conditional-probability-judgments}}
@@ -237,7 +263,7 @@ In both experiments, the simple version of the Bayesian Sampler scores best, but
 
 A chief goal of scientific models is to make accurate predictions about future observations. When comparing and selecting models based on their predictive accuracy, it is crucial to consider how the models will perform on new, as-yet-unseen data. The traditional approach to this issue is to compute the fit of the model to the observed data, but to then correct for the potential for these models to ``overfit'' these data. Typically this correction comes in the form of a ``complexity penalty,'' penalizing models in proportion to their flexibility for accommodating different patterns of data \autocite{gelman.etal2014}. Zhu and colleagues \autocite*{zhu.etal2020} warn that BIC, which penalizes models based solely on the number of parameters in the model, cannot fully account for the differences in the competing models' complexity \autocite[also see][]{piantadosi2018}.
 
-There are at least three challenges to accounting for model complexity in the comparison of the PT+N and Bayesian Sampler models. First, the models differ not only in the number of parameters but in the domain of those parameters. Zhu and colleagues \autocite*{zhu.etal2020} assume that the Bayesian Sampler model's prior distribution should reflect ignorance or a lack of information. A uniform prior, Beta(1, 1) is the most obvious choice in this case, but theoretical arguments can also be made for Beta(0.5, 0.5) (Jeffrey's prior), Beta(0,0) (Haldene's prior), or perhaps other symmetric beta distributions Beta(\(\beta\),\(\beta\)) with \(\beta \in [0, 1]\) \autocite{jaynes2003}. Via the bridging conditions, they show that assuming \(\beta \in [0, 1]\) restricts the ``noise level'' for the Bayesian Sampler, represented in implied \(d\) under the PT+N model, to fall within {[}0, \(1/3\){]} (approaching \(1/3\) as \(N\) approaches 1), whereas the PT+N model permits noise values in \([0, 1/2]\).
+There are at least three challenges to accounting for model complexity in the comparison of the PT+N and Bayesian Sampler models. First, the models differ not only in the number of parameters but in the domain of those parameters. Zhu and colleagues \autocite*{zhu.etal2020} assume that the Bayesian Sampler model's prior distribution should reflect ignorance or a lack of information. A uniform prior, Beta(1, 1) is the most obvious choice in this case, but theoretical arguments can also be made for Beta(0.5, 0.5) (Jeffrey's prior), Beta(0,0) (Haldene's prior), or perhaps other symmetric beta distributions Beta(\(\beta\),\(\beta\)) with \(\beta \in [0, 1]\) \autocite{jaynes2003}. Via the bridging conditions, they show that assuming \(\beta \in [0, 1]\) restricts the ``noise level'' for the Bayesian Sampler, represented in implied \(d\) under the PT+N model, to fall within {[}0, \(1/3\){]} (approaching \(1/3\) as \(N\) approaches 1), whereas the PT+N model permits noise values in \([0, 1/2]\). \(d\) values in ther ange \([1/3, 1/2]\) imply \(\beta\) values greater than 1, corresponding to an informative prior over probabilities.
 
 Second, it is not immediately clear how the models' structural differences impact their flexibility. Zhu and colleagues' \autocite*{zhu.etal2020} bridging condition makes it clear that the PT+N model is more flexible when it comes to predicting unconditional probabilities. But, what impact does the PT+N model's treatment of conditional probabilities have on model complexity? Is this component of the model a sort of Ptolemaic epicycle, adding complexity to the model that should be penalized? Or, does it constitute a commitment to novel predictions that thereby constrain its flexibility? Determining model complexity a priori is not always straightforward when the models being compared differ structurally.
 
@@ -260,7 +286,7 @@ In addition, the Bayesian framework supports straightforward implementation of h
 
 Zhu, Sanborn, \& Chater \autocite*{chater.etal2020} conducted two experiments to compare the PT+N and Bayesian Sampler theories. These experiments asked participants to judge the probability of different events in various combinations. Following prior work by Costello and Watts \autocites*[e.g.][]{costello.watts2016,costello.watts2018}, both experiments focused on the everyday events of different kinds of weather.
 
-Experiment 1 asked about the events {[}icy, frosty{]} and {[}normal, typical{]} (e.g.~``what is the probability that the weather in London is normal and not typical?''). The authors' goal was to ask about highly correlated events, but the events used are perhaps nearly perfectly correlated. Because the terms used to describe these events are nearly synonymous, there is a concern about the interpretation of the statements evaluated in this experiment. This is especially clear, as the authors note, for disjunctive query trials such as ``normal or typical,'' where ``or typical'' might not be read as a disjunction but rather an elaborative clause. In light of these concerns, I excluded the disjunctive trials from Experiment 1 from my analyses.
+Experiment 1 asked about the events {[}icy, frosty{]} and {[}normal, typical{]} (e.g.~``what is the probability that the weather in England is normal and not typical?''). The authors' goal was to ask about highly correlated events, but the events used are perhaps nearly perfectly correlated. Because the terms used to describe these events are nearly synonymous, there is a concern about the interpretation of the statements evaluated in this experiment. This is especially clear, as the authors note, for disjunctive query trials such as ``normal or typical,'' where ``or typical'' might not be read as a disjunction but rather an elaborative clause. In light of these concerns, I excluded the disjunctive trials from Experiment 1 from my analyses.
 
 Experiment 2 focused on more moderately correlated events, {[}cold, rainy{]} and {[}windy, cloudy{]}, that do not admit these misinterpretations. In addition, a third experimental condition asking about {[}warm, snowy{]} was also included in the experiment, but was dropped from the analyses reported in the paper. Exploring the raw responses from this condition reveals a substantial fraction of ``zero'' and ``one'' responses for certain trials. This may reflect a different response process than was intended. For instance, some participants may have engaged in deductive reasoning to judge that it is not possible for the weather to at once be warm and snowy, and therefore responded with zero---failing to properly consider that it is possible (at least logically) for it to be warm and snowy at different times within the same day. Given these potentially aberrant responses, I followed Zhu and colleagues \autocite*{zhu.etal2020} in ignoring data from this condition.
 
@@ -294,7 +320,7 @@ Fixing \(d\) and \(d'\) or \(N\) and \(N'\) equal yields the ``simple'' variant 
 
 Notice that for each model the probability judgments depend on underlying subjective probabilities, derived from a mental sampling process. These subjective probabilities are unobserved, and must be estimated as a latent variable. Here, they are represented with a four-dimensional dirichlet distribution for each subject, representing the probability of the elementary events (\(A \land B\), \(\neg A \land B\), \(A \land \neg B\), \(\neg A \land \neg B\)).
 
-Zhu, Sanborn \& Chater (2020) implement completely unpooled models with separate \(d\), \(d'\), \(N\), \(N'\), and \(\beta\) parameters for each participant. Although hierarchical models with partial pooling might be expected to better account for the data and offer a better test of the models, for consistency and comparison with Zhu et al.'s {[}@-zhu.etal2020{]} analyses, I first estimated implementations of these unpooled models. Figure 1 displays the translation of the PT+N model into the Bayesian framework, along with a plate diagram representing the dependencies among parameters.
+Zhu, Sanborn \& Chater (2020) implement completely unpooled models with separate \(d\), \(d'\), \(N\), \(N'\), and \(\beta\) parameters for each participant. Although hierarchical models with partial pooling might be expected to better account for the data and offer a better test of the models, for consistency and comparison with Zhu et al.'s \autocite*{zhu.etal2020} analyses, I first estimated implementations of these unpooled models. Figure 1 displays the translation of the PT+N model into the Bayesian framework, along with a plate diagram representing the dependencies among parameters.
 
 \begin{figure}
   \begin{minipage}{.5\textwidth}
@@ -377,7 +403,7 @@ Figure 4 shows the posterior distributions of the population-level \(d\) and \(d
 \caption{Posterior density of population-level $d$  and $d'$ parameters estimated from the unrestricted hierarchical Bayesian Sampler model for data from Experiments 1 and 2. Dashed line indicates theoretical maximum values for Bayesian Sampler model with uninformative priors.}
 \end{figure}
 
-Recall, the unrestricted Bayesian Sampler model may also be seen as a version of the PT+N theory that excises its constructive account of conditional probability judgments. So, comparing the PT+N models to the unrestricted Bayesian Sampler model offers a test of the PT+N's constructive account of conditional probability jugments. Comparing predictions from the unrestricted Bayesian Sampler model and the best-fitting PT+N model, we see that the Bayesian Sampler model better captures these judgments from both experiments (see Table 2). And comparing their predictions specifically for conditional probability judgments, the unrestricted Bayesian Sampler again provides a better fit, especially for the modestly-correlated events of Experiment 2 (Exp 1: response-level \(r\) = .91 vs.~.89 (\emph{p} \textless{} .05); query-level \(r\) = .98 vs.~.97; Exp 2: response-level \(r\) = .72 vs.~.67 (\emph{p} \textless{} .01); query-level \(r\) = .92 vs.~.85) These findings suggest that conditioning is better seen as part of a mental model of the events than as part of the probability judgment process.
+Recall, the unrestricted Bayesian Sampler model may also be seen as a version of the PT+N theory that excises its constructive account of conditional probability judgments. So, comparing the PT+N models to the unrestricted Bayesian Sampler model offers a test of the PT+N's constructive account of conditional probability jugments. Comparing predictions from the unrestricted Bayesian Sampler model and the best-fitting PT+N model, we see that the Bayesian Sampler model better captures these judgments from both experiments (see Table 2). This is true for both query-level averages as well as for individual participants' trial responses. And comparing their predictions specifically for conditional probability judgments, the unrestricted Bayesian Sampler again provides a better fit, especially for the modestly-correlated events of Experiment 2 (Exp 1: response-level \(r\) = .91 vs.~.89 (\emph{p} \textless{} .05); query-level \(r\) = .98 vs.~.97; Exp 2: response-level \(r\) = .72 vs.~.67 (\emph{p} \textless{} .01); query-level \(r\) = .92 vs.~.85) These findings suggest that conditioning is better seen as part of a mental model of the events than as part of the probability judgment process.
 
 Table 2 also presents estimates of \(\hat{p}_{\text{LOO}}\), the estimate of the effective number of parameters for each model. Compared to the Bayesian Sampler model, the PT+N model with its constructive account of conditional probability judgments has a similar penalty term estimate when fit to Experiment 1, but has a smaller penalty term when fit to Experiment 2, despite having the same parameterization in terms of \(d\) and \(d'\). Although its special treatment of conditional probability judgments makes it more complex as a putative scientific explanation, this structural component appears to actually constrain its predictive flexibility. However, this constraint leads to a worse-fitting model.
 
@@ -418,13 +444,60 @@ Finally, it is worth noting that the best of these models provide quite strong o
 
 By a fair margin, the models best accounting for the experimental data from Zhu and colleagues \autocite*{zhu.etal2020} were implementations of the Bayesian Sampler theory, with the best single model being a version of the Bayesian Sampler model without restriction on the range of its \(\beta\) parameters. Alternatively, this model can also be seen as a variant of the PT+N model that removes its account of conditional probability judgments. Thus, what these findings indicate most clearly is that the Bayesian Sampler theory provides a superior account of conditional probability judgments in this task. In keeping with the larger theoretical framework of Bayesian cognitive science, the Bayesian Sampler theory assumes that subjective probabilities underlie people's probability judgments, and that conditional probability judgments are produced by Bayesian conditioning occurring in their mental models of the events in question, rather than as arising from the probability judgment process \autocite{chater.etal2020,zhu.etal2020}.
 
-Zhu and colleagues' findings do cast some doubt on their proposal that the priors of the Bayesian Sampler model should reflect ``ignorance priors,'' symmetric Beta distributions with \(\beta \in [0, 1]\). As a generic prior that would be used across contexts, this class of uninformative priors has an appealing rational basis. Nevertheless, many participants' estimated \(d\) and \(d'\) parameters fell outside the \([0, 1/3]\) range implied by ``ignorance'' priors. Given the different values of \(d\) and \(d'\) across Experiments 1 and 2, it seems likely that people bring informative, domain-specific priors to some judgment tasks, meaning that the most appropriate priors might be dictated by the context in which they make their judgments.
+Zhu and colleagues' experiments cast some doubt on their proposal that the priors of the Bayesian Sampler model should reflect ``ignorance priors,'' symmetric Beta distributions with \(\beta \in [0, 1]\). As a generic prior that would be used across contexts, this class of uninformative priors has clear appeal. Nevertheless, many participants' estimated \(d\) and \(d'\) parameters fell outside the \([0, 1/3]\) range implied by ``ignorance'' priors. Given the different values of \(d\) and \(d'\) across Experiments 1 and 2, it seems likely that people bring informative priors to at least some probability judgment tasks.
 
-In addition, the implied \(d\) and \(d'\) noise parameters also varied across individuals. Of note, some participants' implied \(d\) and \(d'\) parameters \emph{were} consistent with the class of ignorance priors, even in Experiment 2 (see supplemental materials). Further research should explore this heterogeneity within and across individuals. Unfortunately, pinning down specific components of the Bayesian Sampler model is a challenge, as the \(\beta\) and \(N\) parameters are not uniquely identifiable from judgment data of the sort examined here.
+How might these theories explain the difference in implied \(d\) parameters between Experiments 1 and 2? Under the Bayesian Sampler theory, it could be that people bring informative and domain-specific priors to the probability judgment task, so that participants' priors differed across the different contexts of Experiments 1 and 2. However, these experimental contexts are highly similar, so it is not entirely clear why this should be the case. Alternatively, it could be that participants held identical informative priors in both contexts, but that they were able to more effectively draw mental samples for the queries presented in Experiment 1 than in Experiment 2 (resulting in lower \(d\)). Similarly, under a noise-based account, it could be that the mental samples are read more noisily in Experiment 2 than Experiment 1. Unfortunately, teasing apart these different accounts is likely to prove challenging. First, the same sort of factors that could be expected to influence the number of samples could also plausibly influence ``noise'' (e.g.~task complexity, expertise). Moreover, pinning down specific components of the Bayesian Sampler model is a challenge, as the \(\beta\) and \(N\) parameters are not uniquely identifiable from this kind of judgment data alone.
+
+In addition, the implied \(d\) and \(d'\) noise parameters also varied across individuals. Of note, some participants' implied \(d\) and \(d'\) parameters \emph{were} consistent with the class of ignorance priors, even in Experiment 2. Further research should explore this heterogeneity within and across individuals.
 
 One thing this model comparison has not decided, and likely \emph{cannot} decide, is whether distortions of probability judgments are products of mental noise or of further reasoning processes. Given the two models' tight connections via the bridging condition \autocite{zhu.etal2020}, it may not be possible to draw decisive conclusions here. Moreover, the theories may not be in any real competition over this point: Zhu and colleagues consider that ``noise'' might give an algorithmic-level solution to the computation-level task defined by the Bayesian Sampler \autocite*{zhu.etal2020}.
 
-Finally, some of the most interesting implications of these models go well beyond the probability judgment task itself: the models both support a probabilistic account of beliefs \autocite{chater.etal2020}. Indeed, by representing the ``true'' subjective probabilities as a latent variable, Bayesian data analysis allows those underlying credences to be inferred. Examining the model posteriors here reveals these estimates often come with considerable uncertainty, but at least for some participants they can be estimated with useful levels of precision. Of course, Zhu and colleagues' \autocite*{zhu.etal2020} experiments were never designed for this purpose. Future research could explore how estimates of people's credences might be made more reliable, and how inferences about these mental probabilities might be integrated with other Bayesian models of reasoning \autocites[e.g.][]{franke.etal2016,jern.etal2014,griffiths.tenenbaum2006}. One particularly promising direction could be to integrate these models with formal models of belief revision, which might then shed new light on these fundamental cognitive processes \autocites[e.g.][]{cook.lewandowsky2016,jern.etal2014,powell.etal2018}.
+Finally, some of the most interesting implications of these models go well beyond the probability judgment task itself: the models both support a probabilistic account of beliefs \autocite{chater.etal2020}. Indeed, by representing the ``true'' subjective probabilities as a latent variable, Bayesian data analysis allows those underlying credences to be inferred. Examining the model posteriors here reveals these estimates often come with considerable uncertainty, but at least for some participants they can be estimated with useful levels of precision. Of course, Zhu and colleagues' \autocite*{zhu.etal2020} experiments were never designed for this purpose. Future research could explore how estimates of people's credences might be made more reliable, and how inferences about these mental probabilities might be integrated with other Bayesian models of reasoning \autocites[e.g.][]{franke.etal2016,jern.etal2014,griffiths.tenenbaum2006}. For instance, people's responses in various reasoning tasks are often explicitly related to inferred subjective mental probabilities (e.g. \textcite{jern.etal2014}), so accounting for biases in those reports may permit more rigorous model testing. One particularly promising direction could be to integrate these models with formal models of belief revision, which might then shed new light on these fundamental cognitive processes \autocites[e.g.][]{cook.lewandowsky2016,jern.etal2014,powell.etal2018}.
+
+\pagebreak
+
+\hypertarget{declarations}{%
+\section{Declarations}\label{declarations}}
+
+\hypertarget{funding}{%
+\subsubsection{Funding}\label{funding}}
+
+No funding was obtained for this study.
+
+\hypertarget{conflict-of-interests}{%
+\subsubsection{Conflict of Interests}\label{conflict-of-interests}}
+
+The author declares no conflicts of interest.
+
+\hypertarget{availability-of-data-and-materials}{%
+\subsubsection{Availability of Data and Materials}\label{availability-of-data-and-materials}}
+
+This paper presents secondary analyses of data. The datasets generated and/or analysed during the current study are available at \url{https://osf.io/mgcxj/files/}.
+
+\hypertarget{code-availability}{%
+\subsubsection{Code availability}\label{code-availability}}
+
+All analysis code is available at \url{https://github.com/derekpowell/bayesian-sampler} and at \url{https://osf.io/bpkjf/}.
+
+\hypertarget{author-contributions}{%
+\subsubsection{Author contributions}\label{author-contributions}}
+
+Derek Powell is the sole author of this manuscript.
+
+\hypertarget{ethical-approval}{%
+\subsubsection{Ethical approval}\label{ethical-approval}}
+
+Not applicable.
+
+\hypertarget{consent-to-participate}{%
+\subsubsection{Consent to participate}\label{consent-to-participate}}
+
+Not applicable.
+
+\hypertarget{consent-to-publish}{%
+\subsubsection{Consent to publish}\label{consent-to-publish}}
+
+Not applicable.
 
 
 \printbibliography
