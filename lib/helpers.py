@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import arviz as az
+import pandas as pd
 
 import re
 
@@ -130,12 +131,13 @@ def make_model_data(data):
     X_data = {
         "trial": data.querytype,
         "subj": jnp.array(list(data.ID)),
-        "cond": jnp.array(list(data.condition), dtype="int32")
+        "cond": jnp.array(list(data.condition), dtype="int")
     }
 
     y_data = jnp.array(data.estimate.to_numpy())
     
     return X_data, y_data
+
 
 def make_model_data_trials(data):
     # for trial-level (non-averaged) data
@@ -143,8 +145,8 @@ def make_model_data_trials(data):
     X_data = {
         "trial": data.querytype,
         "subj": jnp.array(list(data.ID)),
-        "cond": jnp.array(list(data.condition), dtype="int32"),
-        "block": jnp.array(list(data.block), dtype="int32"),
+        "cond": jnp.array(list(data.condition), dtype="int"),
+        "block": jnp.array(list(data.block), dtype="int"),
     }
 
     y_data = jnp.array(data.estimate.to_numpy())

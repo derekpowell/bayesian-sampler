@@ -19,10 +19,11 @@ def sim_bayes_samp_trial(prob, beta, N):
     res = (p * N + beta)/(N + 2.*beta)
     return np.asarray(res)
 
+
 def sim_ptn_samp_trial(prob, d, N):
     # will round N
-    S = np.random.binomial(N.astype("int"), (1-2*d)*prob + d)
-    res = S/N
+    S = np.random.binomial(np.round(N).astype("int"), (1-2*d)*prob + d)
+    res = S/np.round(N).astype("int")
     return np.asarray(res)
 
 
@@ -132,7 +133,7 @@ def make_sim_data_trials(n_participants, n_blocks, n_conditions, params):
 
     sim_data["prob"] = calc_prob(np.asarray(all_thetas)[np.asarray(subj)], X_num, X_denom)
     sim_data["estimate_bs"] = sim_bayes_samp_trial(np.asarray(sim_data.prob), np.asarray(sim_data.beta),  np.asarray(sim_data.N)).astype("float")
-    sim_data["estimate_ptn"] = sim_ptn_samp_trial(np.asarray(sim_data.prob), np.asarray(sim_data.implied_d),  np.asarray(sim_data.N))
+    sim_data["estimate_ptn"] = sim_ptn_samp_trial(np.asarray(sim_data.prob), np.asarray(sim_data.implied_d),  np.asarray(sim_data.N_base +  sim_data.N_delta)) # 8/15/22, 6:33 PM choices to be made about N for PTN sim
     
     return sim_data
 
