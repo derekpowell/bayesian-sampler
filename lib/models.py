@@ -577,6 +577,78 @@ def PTN_complex_mlm_simplecond(data, y=None):
 
     return yhat
 
+
+
+## =====================================
+## Trial-level categorical mdoels (rounding to nearest 5)
+## =====================================
+
+def bs_complex_mlm_trial_level(data, y=None):
+
+    # Data processing
+    trial, subj, cond = data["trial"], data["subj"], data["cond"]
+    n_Ps, n_conds = np.unique(subj).shape[0], np.unique(cond).shape[0] 
+
+    # setup "design matrix" (of sorts)
+    X_num, X_denom = jnp.stack([num_vecs[i] for i in trial]), jnp.stack([denom_vecs[i] for i in trial])
+    conjdisj, not_conjdisj = jnp.array([is_conjdisj(i) for i in trial]), abs(1-jnp.array([is_conjdisj(i) for i in trial]))
+
+    # population level parameters/priors
+    # k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
+    beta_pop = numpyro.sample("beta_pop", dist.Normal(-1, 1)) # skewed after sigmoid
+    beta_sd = numpyro.sample("beta_sd", dist.LogNormal(-1, 1))
+
+    N_prime_pop = numpyro.sample("N_prime_pop", dist.Normal(10, 10)) # mildly informative
+    N_delta_pop = numpyro.sample("N_delta_pop", dist.Normal(0, 20)) 
+    N_prime_sd = numpyro.sample("N_prime_sd", dist.LogNormal(-.5, 1.5))
+    N_delta_sd = numpyro.sample("N_delta_sd", dist.LogNormal(-.5, 1.5))
+    
+    rnd_policy = numpyro.sample("rnd_policy", dist.Dirichlet(jnp.ones(3)))
+
+    # subject-level parameters/priors <--- non-centered parameterization for all these
+    with numpyro.plate("subj", n_Ps):
+        betas = numpyro.sample("beta_r", dist.Normal(0, 1))*beta_sd 
+        N_deltas = numpyro.sample("N_delta_r", dist.Normal(0, 1))*N_delta_sd
+        N_primes = numpyro.sample("N_prime_r", dist.Normal(0, 1))*N_prime_sd
+
+    # subject/query-level parameters/priors
+    with numpyro.plate("cond", n_Ps*n_conds):
+        thetas = numpyro.sample("theta", dist.Dirichlet(jnp.ones(4)))
+
+    # beta = expit(beta_pop + betas[subj])*10 # constrains beta to [0,10]
+    
+    beta = softplus(beta_pop + betas[subj])
+    
+    numpyro.deterministic("beta_subj", softplus(beta_pop + betas))
+
+    # exp() needed to constrain N and N_delta positive
+    N = 1 + softplus(N_prime_pop + N_primes[subj]) + softplus(N_delta_pop + N_deltas[subj]) * not_conjdisj # they also required N be at least 1
+
+    numpyro.deterministic("N_prime_subj", 1 + softplus(N_prime_pop + N_primes))
+    numpyro.deterministic("N_subj", 1 + softplus(N_prime_pop + N_primes) + softplus(N_delta_pop + N_deltas))
+    # numpyro.deterministic("beta_subj", expit(beta_pop + betas)*10)
+
+    theta_ind = ((subj*n_conds)+cond)
+    theta = thetas[theta_ind,:]
+    
+    pi = calc_prob(theta, X_num, X_denom)
+
+    # Likelihood
+    with numpyro.plate("data", len(trial)):
+        
+        resp_probs = (
+        1./21.*rnd_policy[0] +
+        bs_cat_probs(pi, N, beta, responses_5)*rnd_policy[1] + 
+        bs_cat_probs(pi, N, beta, responses_10)*rnd_policy[2]
+        )
+        
+        yhat = numpyro.sample("yhat", dist.Categorical(probs=resp_probs), obs=y) # rounded
+
+
+    return yhat
+
+
+
 ## =====================================
 ## Hierarchical Mixture Models
 ## =====================================

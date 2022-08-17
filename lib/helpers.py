@@ -326,7 +326,7 @@ def make_arviz_data(mcmc, model, data):
     posterior_predictive = Predictive(model, posterior_samples)(
         jax.random.PRNGKey(1), data
     )
-    prior = Predictive(model, num_samples=500)(
+    prior = Predictive(model, num_samples=1000)(
         jax.random.PRNGKey(2), data
     )
 
@@ -370,3 +370,47 @@ def plot_model_preds(orig_data, model_data):
     axes[0].set_title("Avg. participant-level responses")    
     axes[1].set_title("Avg. responses for each query")
     axes[2].set_title("posterior predictive")
+
+    ## -- new functions for processing arviz data
+
+import scipy
+## pull out samples for each individual and match back up with data
+## see if we're recovering the original parameters ...
+
+def extract_samples(z, var_name, prior=False):
+    if prior:
+        x1 = pd.DataFrame(np.array(z.prior[var_name]))
+    else:
+        x1 = pd.DataFrame(np.array(z.posterior[var_name]))
+    
+    x1 = x1.reset_index() >> s.gather("draw", "value", -_.index) >> s.mutate(var = var_name)
+    
+    return(x1)
+
+def dist_to_df(az_data, var_list, prior=False):
+    # note variables must have same raw dimensions
+    z = az_data.stack(sample=['chain','draw'])
+    if len(var_list) > 0:
+        df_list = [extract_samples(z, v, prior) for v in var_list]
+        df = pd.concat(df_list)
+    
+        df = df >> s.spread("var", "value")
+    
+    return(df)
+
+def posterior_to_df_mlm(az_data, fixed_list, random_list):
+    fixeds = dist_to_df(az_data, fixed_list) >> s.mutate(draw = _.index) >> s.select(-_.index)
+    randoms = dist_to_df(az_data, random_list)
+
+    df_posterior = pd.merge(fixeds, randoms, on="draw") >> s.rename(ID = _.index)
+    
+    return(df_posterior)
+
+
+def prior_to_df_mlm(az_data, fixed_list, random_list):
+    fixeds = dist_to_df(az_data, fixed_list, prior=True) >> s.mutate(draw = _.index) >> s.select(-_.index)
+    randoms = dist_to_df(az_data, random_list, prior=True)
+
+    df_prior = pd.merge(fixeds, randoms, on="draw") >> s.rename(ID = _.index)
+    
+    return(df_prior)
