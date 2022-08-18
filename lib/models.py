@@ -3,6 +3,9 @@ import numpyro.distributions as dist
 import jax.numpy as jnp
 import numpy as np
 
+from jax.nn import softplus
+import tensorflow_probability.substrates.jax as tfp
+
 from lib.helpers import *
 
 ## -------------------------------------
@@ -582,6 +585,85 @@ def PTN_complex_mlm_simplecond(data, y=None):
 ## =====================================
 ## Trial-level categorical mdoels (rounding to nearest 5)
 ## =====================================
+
+
+from jax import vmap
+
+def spread_vec(x, step_size): # this works without static arguments
+    base_steps = x.shape[0]
+    x_split = jnp.split(x, base_steps)
+    pad = jnp.zeros(step_size-1)
+    probs = jnp.stack([jnp.concatenate((i,pad)) for i in x_split]).flatten()
+    probs = probs[0:21]
+    return probs/jnp.sum(probs)
+
+
+def bs_dist(p, beta, N):
+    return (p * N) / (N + 2 * beta) + beta / (N + 2 * beta)
+
+
+def bs_dist_inv(x, beta, N):
+    return (x - beta / (N + 2. * beta)) * (N + 2. * beta) / N
+
+
+def bs_dist_cdf(N, beta, a, b, x):
+    # where x is untransformed probability
+    trans_x = bs_dist_inv(x, beta, N)
+
+    res = jnp.where(
+        jnp.logical_or( trans_x <= 0., trans_x >= 1.), 
+        jnp.clip(trans_x, 0., 1.), 
+        tfp.math.betainc(a, b, jnp.clip(trans_x, 1e-8, 1-1e-8))
+    )
+
+    return res
+
+
+def f_bs(mu, N, beta, responses):
+    
+    a = mu*N
+    b = (1.-mu)*N
+    
+    n_resps = (responses.shape[0]-1)
+    step = int(20/n_resps)
+    rnd_unit_scaled = 1/n_resps
+    
+    lower = jnp.clip((responses/n_resps) - rnd_unit_scaled/2., 1e-8, 1-1e-8)
+    upper = jnp.clip((responses/n_resps) + rnd_unit_scaled/2., 1e-8, 1-1e-8)
+    
+    prob_resps = bs_dist_cdf(N, beta, a, b, upper) - bs_dist_cdf(N, beta, a, b, lower)
+    prob_resps = (spread_vec(prob_resps, step) + 1e-30)
+    prob_resps = (prob_resps)/jnp.sum(prob_resps)
+    
+    return(prob_resps)
+
+
+bs_cat_probs = vmap(f_bs, (0, 0, 0, None))
+
+responses_10 = jnp.linspace(0, 10, num=11)
+responses_5 = jnp.linspace(0, 20, num=21)
+
+def f(mu, k, responses):
+    
+    a = mu*k
+    b = (1.-mu)*k
+    
+    n_resps = (responses.shape[0]-1)
+    step = int(20/n_resps)
+    rnd_unit_scaled = 1/n_resps
+    
+    lower = jnp.clip((responses/n_resps) - rnd_unit_scaled/2., 1e-8, 1-1e-8)
+    upper = jnp.clip((responses/n_resps) + rnd_unit_scaled/2., 1e-8, 1-1e-8)
+    
+    prob_resps = tfp.math.betainc(a, b, upper) - tfp.math.betainc(a, b, lower)
+    prob_resps = (spread_vec(prob_resps, step) + 1e-30)
+    prob_resps = (prob_resps)/jnp.sum(prob_resps)
+    # prob_resps = (prob_resps + 1e-30) / jnp.sum(prob_resps) # add err to prevent divergences
+    
+    return(prob_resps)
+
+
+lbeta_cat_probs = vmap(f, (0, 0, None)) # change to map for k
 
 def bs_complex_mlm_trial_level(data, y=None):
 
