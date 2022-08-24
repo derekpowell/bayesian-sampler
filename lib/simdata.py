@@ -90,11 +90,11 @@ def make_sim_data_bs_trials(n_participants, n_blocks, n_conditions, params):
                 "condition": cond
             }) >> s.mutate(
                 conjdisj_trial = _.querytype.apply(is_conjdisj),
-                N_base = _.ID.apply(lambda x: params["N_base"][x]),
+                N_prime = _.ID.apply(lambda x: params["N_prime"][x]),
                 N_delta = _.ID.apply(lambda x: params["N_delta"][x]),
                 beta = _.ID.apply(lambda x: params["beta"][x]),
                 theta = _.ID.apply(lambda x: all_thetas[x])
-            ) >> s.mutate(N = X.N_base + X.N_delta * abs(1-X.conjdisj_trial))
+            ) >> s.mutate(N = _.N_prime + _.N_delta * abs(1-_.conjdisj_trial))
 
     sim_data["prob"] = calc_prob(np.asarray(all_thetas)[np.asarray(subj)], X_num, X_denom)
     sim_data["estimate"] = sim_bayes_samp_trial(np.asarray(sim_data.prob), np.asarray(sim_data.beta),  np.asarray(sim_data.N)).astype("float")
@@ -294,6 +294,7 @@ def make_sim_data_ptn_trials(n_participants, n_blocks, n_conditions, params, sim
                     
     # setup "design matrix" (of sorts)
     X_num, X_denom = jnp.stack([num_vecs[i] for i in trial]), jnp.stack([denom_vecs[i] for i in trial])
+    X_A = jnp.stack([pA_vecs[i] for i in trial])
 
     d = pd.DataFrame(
             data = {
@@ -318,7 +319,7 @@ def make_sim_data_ptn_trials(n_participants, n_blocks, n_conditions, params, sim
     else:
         d["prob"] = prob_judge_PTN(np.asarray(d.querytype), theta_vec, X_num, X_denom, X_A, np.asarray(d.d))
 
-    d["estimate_ptn"] = sim_ptn_samp_trial(np.asarray(d.prob), np.asarray(d.d),  np.asarray(d.k)) # 8/15/22, 6:33 PM choices to be made about N for PTN sim
+    d["estimate"] = sim_ptn_samp_trial(np.asarray(d.prob), np.asarray(d.d),  np.asarray(d.k)) # 8/15/22, 6:33 PM choices to be made about N for PTN sim
     
     return d
 
