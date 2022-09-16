@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import numpy as np
 import arviz as az
 import pandas as pd
-
+import seaborn as sns
 import re
 
 import siuba as s
