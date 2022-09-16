@@ -1,3 +1,5 @@
+
+
 \begin{figure}
   \begin{minipage}{.5\textwidth}
     \flushright
@@ -7,17 +9,18 @@
       \node[det, above=of y] (mu) {$\mu_{ijk}$};
       \node[det, above=of mu, xshift=-1.2cm]  (d) {$d_j$};
       \node[det, above=of mu, xshift=1.2cm]  (d_prime) {$d_j'$};
+      \node[obs, right=.5cm of mu]  (x) {$x_{ijk}$};
       \node[latent, above=of d]  (delta) {$\delta_j$};
       \node[latent, above=of d_prime]  (delta_delta) {$\Delta\delta_j$};
       \node[latent, right=2cm of y]  (kappa) {$\kappa$};
-      \node[latent, left=1cm of mu]            (p) {$\vec{p_{jk}}$};
+      \node[latent, left=1cm of mu]            (p) {$\vec{\theta_{jk}}$};
       \node[latent, above=of delta, xshift=-.5cm]  (delta_pop) {$\overline{\delta}$};
       \node[latent, above=of delta_delta, xshift=-.5cm]  (delta_delta_pop) {$\overline{\Delta\delta}$};
       \node[latent, above=of delta, xshift=.5cm]  (sigma_delta) {$\sigma_{\delta}$};
       \node[latent, above=of delta_delta, xshift=.5cm]  (sigma_delta_delta) {$\sigma_{\Delta\delta}$};
       % Connect the nodes
       \edge {mu, kappa} {y} ; %
-      \edge {d, d_prime} {mu}
+      \edge {d, d_prime, x} {mu}
       \edge {delta} {d, d_prime}
       \edge {delta_delta} {d_prime}
       \edge {p} {mu}
@@ -30,15 +33,15 @@
       {
         \tikzset{plate caption/.append style={below=15pt of #1.south east}};
         \tikzstyle{plateIJK} = [align=center];
-        \plate[inner sep=0.25cm, xshift=-.0625cm] {plateIJK} {(mu)(y)} {$i$} ;
+        \plate[inner sep=0.25cm, xshift=-.0625cm] {plateIJK} {(mu)(y)(x)} {$i$} ;
      }
       {
         \tikzset{plate caption/.append style={above right=0pt of #1.north east}};
-        \plate[inner sep=0.25cm, xshift=-.12cm, yshift=-.12cm] {plateJ} {(mu)(y)(p)(d)(d_prime)(delta)(delta_delta)} {$j$} ;
+        \plate[inner sep=0.25cm, xshift=-.12cm, yshift=-.12cm] {plateJ} {(mu)(y)(p)(d)(d_prime)(delta)(delta_delta)(x)} {$j$} ;
       }
       {
         \tikzset{plate caption/.append style={above right=0pt and 0pt of #1.north west}};
-        \plate[inner sep=0.25cm] {plateIJ} {(p)(mu)(y)} {$k$};
+        \plate[inner sep=0.25cm] {plateIJ} {(p)(mu)(y)(x)} {$k$};
       }
 
 
@@ -49,7 +52,7 @@
     \small
     \begin{align*}
   y_{ijk} &\sim Beta\big(\mu_{ijk} \kappa, (1-\mu_{ijk}) \kappa \big) \\
-  \mu_{ijk} &= f_{BS}(\overrightarrow{p_{jk}}, d_j, d_j')  \\
+  \mu_{ijk} &= f_{BS}(\overrightarrow{\theta_{jk}}, x_{ijk}, d_j, d_j')  \\
   d_j &= \frac{1}{3} \ \text{logistic}(\delta_j) \\
   d_j' &= \frac{1}{3} \ \text{logistic}\big(\delta_j + \exp(\Delta\delta_j)\big) \\
   \overrightarrow{p_{jk}} &\sim Dirichlet(\overrightarrow{1}) \\
@@ -65,4 +68,3 @@
   \end{minipage}
   \caption{Hierarchical complex Bayesian Sampler model diagram and formula specifications. Circular nodes are parameters, shaded nodes are observations, and squared nodes are deterministic functions of parameters. Plates signify values defined for $i$ trials, $j$ participants, and $k$ conditions.}
 \end{figure}
-
