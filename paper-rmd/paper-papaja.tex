@@ -3,12 +3,11 @@
 \PassOptionsToPackage{hyphens}{url}
 %
 \documentclass[
-  english,
   man,floatsintext]{apa6}
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
-\usepackage{ifxetex,ifluatex}
-\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+\usepackage{iftex}
+\ifPDFTeX
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp} % provide euro and other symbols
@@ -34,16 +33,6 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \usepackage{xcolor}
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
-\hypersetup{
-  pdftitle={Comparing probabilistic accounts of probability judgments},
-  pdfauthor={Derek Powell1},
-  pdflang={en-EN},
-  pdfkeywords={probability judgments, Bayesian cognitive science, heuristics and biases},
-  hidelinks,
-  pdfcreator={LaTeX via pandoc}}
-\urlstyle{same} % disable monospaced font for URLs
 \usepackage{graphicx}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
@@ -70,6 +59,38 @@
   \let\oldsubparagraph\subparagraph
   \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
 \fi
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {% don't indent paragraphs
+  \setlength{\parindent}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+  \let\oldpar\par
+  \def\par{\hangindent=\cslhangindent\oldpar}
+  \fi
+  % set entry spacing
+  \setlength{\parskip}{#2\cslentryspacingunit}
+ }%
+ {}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
+\fi
+\babelprovide[main,import]{english}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
 % Manuscript styling
 \usepackage{upgreek}
 \captionsetup{font=singlespacing,justification=justified}
@@ -139,21 +160,21 @@
 \usepackage{tikz}
 \usetikzlibrary{bayesnet}
 \mathchardef\hyph="2D
-\ifxetex
-  % Load polyglossia as late as possible: uses bidi with RTL langages (e.g. Hebrew, Arabic)
-  \usepackage{polyglossia}
-  \setmainlanguage[]{english}
-\else
-  \usepackage[main=english]{babel}
-% get rid of language-specific shorthands (see #6817):
-\let\LanguageShortHands\languageshorthands
-\def\languageshorthands#1{}
-\fi
-\ifluatex
+\ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
 \usepackage[style=apa,]{biblatex}
 \addbibresource{references.bib}
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Comparing probabilistic accounts of probability judgments},
+  pdfauthor={Derek Powell1},
+  pdflang={en-EN},
+  pdfkeywords={probability judgments, Bayesian cognitive science, heuristics and biases},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
 
 \title{Comparing probabilistic accounts of probability judgments}
 \author{Derek Powell\textsuperscript{1}}
@@ -454,50 +475,12 @@ One thing this model comparison has not decided, and likely \emph{cannot} decide
 
 Finally, some of the most interesting implications of these models go well beyond the probability judgment task itself: the models both support a probabilistic account of beliefs \autocite{chater.etal2020}. Indeed, by representing the ``true'' subjective probabilities as a latent variable, Bayesian data analysis allows those underlying credences to be inferred. Examining the model posteriors here reveals these estimates often come with considerable uncertainty, but at least for some participants they can be estimated with useful levels of precision. Of course, Zhu and colleagues' \autocite*{zhu.etal2020} experiments were never designed for this purpose. Future research could explore how estimates of people's credences might be made more reliable, and how inferences about these mental probabilities might be integrated with other Bayesian models of reasoning \autocites[e.g.][]{franke.etal2016,jern.etal2014,griffiths.tenenbaum2006}. For instance, people's responses in various reasoning tasks are often explicitly related to inferred subjective mental probabilities (e.g. \textcite{jern.etal2014}), so accounting for biases in those reports may permit more rigorous model testing. One particularly promising direction could be to integrate these models with formal models of belief revision, which might then shed new light on these fundamental cognitive processes \autocites[e.g.][]{cook.lewandowsky2016,jern.etal2014,powell.etal2018}.
 
-\pagebreak
+\hypertarget{references}{%
+\section{References}\label{references}}
 
-\hypertarget{declarations}{%
-\section{Declarations}\label{declarations}}
-
-\hypertarget{funding}{%
-\subsubsection{Funding}\label{funding}}
-
-No funding was obtained for this study.
-
-\hypertarget{conflict-of-interests}{%
-\subsubsection{Conflict of Interests}\label{conflict-of-interests}}
-
-The author declares no conflicts of interest.
-
-\hypertarget{availability-of-data-and-materials}{%
-\subsubsection{Availability of Data and Materials}\label{availability-of-data-and-materials}}
-
-This paper presents secondary analyses of data. The datasets generated and/or analysed during the current study are available at \url{https://osf.io/mgcxj/files/}.
-
-\hypertarget{code-availability}{%
-\subsubsection{Code availability}\label{code-availability}}
-
-All analysis code is available at \url{https://github.com/derekpowell/bayesian-sampler} and at \url{https://osf.io/bpkjf/}.
-
-\hypertarget{author-contributions}{%
-\subsubsection{Author contributions}\label{author-contributions}}
-
-Derek Powell is the sole author of this manuscript.
-
-\hypertarget{ethical-approval}{%
-\subsubsection{Ethical approval}\label{ethical-approval}}
-
-Not applicable.
-
-\hypertarget{consent-to-participate}{%
-\subsubsection{Consent to participate}\label{consent-to-participate}}
-
-Not applicable.
-
-\hypertarget{consent-to-publish}{%
-\subsubsection{Consent to publish}\label{consent-to-publish}}
-
-Not applicable.
+\hypertarget{refs}{}
+\begin{CSLReferences}{0}{0}
+\end{CSLReferences}
 
 
 \printbibliography

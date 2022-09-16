@@ -1,0 +1,549 @@
+---
+title             : "Comparing probabilistic accounts of probability judgments"
+shorttitle        : "Comparing probability judgment accounts"
+
+author: 
+  - name          : "Derek Powell"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "4701 W Thunderbird Rd, Phoenix AZ 85306"
+    email         : "dmpowell@asu.edu"
+    # role:         # Contributorship roles (e.g., CRediT, https://casrai.org/credit/)
+    #   - Conceptualization
+    #   - Writing - Original Draft Preparation
+    #   - Writing - Review & Editing
+  # - name          : "Ernst-August Doelle"
+  #   affiliation   : "1,2"
+  #   role:
+  #     - Writing - Review & Editing
+
+affiliation:
+  - id            : "1"
+    institution   : "Arizona State University, School of Social and Behavioral Sciences"
+
+authornote: |
+ This manuscript has not yet been peer-reviewed. This study reports secondary analyses of data a and was not preregistered.
+
+abstract: |
+ Bayesian theories of cognitive science hold that cognition is fundamentally probabilistic, but people’s explicit probability judgments often violate the laws of probability. Two recent proposals, the "Probability Theory plus Noise" [@costello.watts2014] and "Bayesian Sampler" [@zhu.etal2020] theories of probability judgments, both seek to account for these biases while maintaining that mental credences are fundamentally probabilistic. These theories fit quite differently into the larger project of Bayesian cognitive science, but their many similarities complicate comparisons of their predictive accuracy. In particular, comparing the models demands a careful accounting of model complexity. Here, I cast these theories into a Bayesian data analysis framework that supports principled model comparison using information criteria. Comparing the fits of both models on data collected by Zhu and colleagues [-@zhu.etal2020] I find the data are best explained by a modified version of the Bayesian Sampler model under which people may hold informative priors about probabilities.
+  
+  <!-- https://tinyurl.com/ybremelq -->
+  
+keywords          : "probability judgments, Bayesian cognitive science, heuristics and biases"
+wordcount         : "????"
+
+bibliography      : ["references.bib"]
+
+floatsintext      : yes
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+linenumbers       : no
+mask              : no
+draft             : no
+biblio-style      : "apa"
+documentclass     : "apa6"
+classoption       : "man"
+output:
+  papaja::apa6_pdf:
+    citation_package: biblatex
+
+header-includes:
+  - \usepackage{tikz}
+  - \usetikzlibrary{bayesnet}
+  - \mathchardef\hyph="2D
+---
+
+```{r setup, include = FALSE}
+library("papaja")
+options(encoding = "UTF-8")
+# r_refs("references.bib")
+```
+
+```{r load_packages, include=FALSE}
+library(tidyverse)
+library(kableExtra)
+```
+
+```{r get_figures, child='../create-paper-figures.Rmd', include=FALSE}
+
+```
+
+
+Bayesian theories of cognition offer a unified formal framework for cognitive science [@tenenbaum.etal2011] that has had remarkable explanatory successes across domains, including in perception [e.g. @kersten.etal2004], memory [e.g. @anderson1991], language [e.g. @xu.tenenbaum2007], and reasoning [e.g. @lu.etal2012]. At the heart of the Bayesian project is the idea that cognition is fundamentally probabilistic: that people reason according to subjective degrees of belief which follow the laws of probability and, in particular, that they are revised in light of evidence according to Bayes' Rule. It is somewhat embarrassing then, that these theories have often been accused of failing to describe human "beliefs" of the simple and everyday sort, such as beliefs like "it will rain tomorrow", "vaccines are safe," or "this politician is trustworthy" [@chater.etal2020].
+
+Trouble starts as soon as we attempt to measure beliefs. According to Bayesian theories of cognition and epistemology [@jaynes2003], the degree to which people believe in various propositions, or their credences, should reflect subjective mental probabilities. So asking people to express beliefs in terms of probability seems only natural. 
+
+Unfortunately, people’s explicit probability judgments routinely violate the most basic axioms of probability theory. For example, human probability judgments often exhibit the "conjunction fallacy": people will often judge the conjunction of two events (e.g. "Tom Brady likes football and miniature horses") as being more probable than one of the events in isolation (e.g. "Tom Brady likes miniature horses"), a plain and flagrant violation of probability theory [@tversky.kahneman1983]. Other demonstrations of the incoherence of probability judgments include disjunction fallacies, subadditivity or "unpacking" effects [@tversky.koehler1994], and a number of others [for an accessible review, see @kahneman2013]. Altogether these findings have led many researchers to abandon the notion that degrees of belief are represented as probabilities.
+
+Recently however, two groups of researchers have proposed theories of human probability judgments that account for biases in these judgments while maintaining that mental credences are fundamentally probabilistic [@costello.watts2014; @zhu.etal2020]. Both of these theories build on the increasingly popular notion that a variety of human reasoning tasks are accomplished by a limited process of mental "sampling" from a probabilistic mental model [see also @chater.etal2020; @dasgupta.etal2017].[^1]
+
+[^1]: It is worth noting that other non-sampling based approaches have been proposed to account for distortions in people's use of explicit probabilities in decision-making [e.g. @zhang.maloney2012; @zhang.etal2020]. Further theorizing might extend these accounts to also describe the generation of probability estimates, so that a probabilistic account of beliefs might not rest entirely on the assumption of sampling from mental models.
+
+## Two probabilistic theories of probability judgment
+
+Costello and Watts [-@costello.watts2014; -@costello.watts2016; -@costello.watts2018] have proposed a theory of probability judgment they call the "Probability Theory plus Noise" theory (PT+N). In the PT+N model, mental "samples" are drawn from a probabilistic mental model of events and are then "read" with noise, so that some positive examples will be read as negative and some negative examples read as positive with some probability $d$. The end products are probability judgments reflecting probabilistic credences perturbed by noise. In their model, the probability a mental sample for an event $A$ is read as $A$ is the probability that the sample truly is $A$, $p(A)$, and that it is correctly read $(1-d)$, plus the probability that the sample is not $A$, $1-P(A)$ and that it is incorrectly read ($d$), or:
+
+\begin{align}
+  P(\text{read as A}) &= (1-d)P(A) + d(1-P(A)) \\
+  &= (1-2d)P(A) + d \tag{1}
+\end{align}
+
+Thus under the simplest form of the PT+N model, the expected value of probability judgments is:
+
+$$
+E[\hat{P}_{PT+N}(A)] = (1-2d)P(A) + d \tag{2}
+$$
+
+By assumption, a maximum of 50% of samples can be misread, so $d$ is a number in the range $[0, 1/2]$. The PT+N theory provides a unified account for a wide variety of biases in probability judgment that were previously attributed to different types of heuristics, as well as novel biases identified based on the model's predictions [@costello.watts2014; @costello.watts2016; @costello.watts2017; @costello.watts2018].
+
+Meanwhile, Zhu, Sanborn, & Chater [-@zhu.etal2020] have proposed a Bayesian model of probability judgment they call the "Bayesian Sampler." Under this model, probability judgment is itself seen as a process of Bayesian inference. To judge the probability of an event, a limited number of samples are again drawn from a mental model of the event. Then, those "observed" samples are integrated with a prior over probabilities to produce a probability judgment. This prior takes the form of a symmetric Beta distribution, $Beta(\beta, \beta)$. After observing $S(A)$ successes and $N - S(A)$ failures, the posterior over probabilities is distributed $Beta(\beta + S(A), \beta + N - S(A))$. Zhu and colleagues [-@zhu.etal2020] assume that people report the mean of their posterior probability estimates. For any Beta distribution $x \sim Beta(a,b)$, $E[x] = \frac{a}{a+b}$. So, the expected probability estimate is a linear function of S, N, and $\beta$.
+
+$$\hat{P}_{BS}(A) = \frac{S(A)}{N+2\beta} + \frac{\beta}{N+2\beta} \tag{3}$$
+
+The expected value of the estimate can then be written in terms of the expected number of successes, or $P(A) \cdot N$. Under the simplest version of the Bayesian Sampler model, this gives the following formula:
+
+$$E[\hat{P}_{BS}(A)] = \frac{N}{N+2\beta}P(A) + \frac{\beta}{N+2\beta} \tag{4}$$
+
+Like the PT+N model, the Bayesian Sampler model accounts for a wide array of biases in probability judgments, including the novel biases identified by Costello and Watts [@costello.watts2014; @costello.watts2016]. In fact, important equivalencies can be drawn between the two models. Zhu and colleagues [-@zhu.etal2020] show that the $N$ and $\beta$ parameters of their model can be related to the $d$ parameter of the PT+N model via the following bridging formula:
+
+$$d = \frac{\beta}{N+2\beta} \tag{5}$$
+
+Thus, in many cases the effect of a Bayesian prior is identical to the effect of noise in the PT+N model (at least in expectation). But, rather than merely perturbing people's probability judgments, this prior can be seen as regularizing these judgments away from extreme values. Zhu and colleagues [-@zhu.etal2020] argue that such regularization can be adaptive in cases where only a small number of mental samples can be drawn. For instance, consider someone estimating the probability that they can swim across a lake, outrun an animal, or win a hand of poker: if a mental simulation of these events produces two samples indicating success, one might conclude these are all certain victories and thereby be too willing to assume risk. A regularizing prior pushes these estimates away from extremes, thereby promoting better decision-making when mental samples are sparse. However, this hedging comes at the cost of systematic incoherence and biases. 
+
+## Differentiating between the models
+
+These models make subtly different predictions on two levels: First,  the models have distinct accounts of conditional probability judgments that make different predictions in terms of expected values. Second, the models present different process-level accounts of probability judgment that entail different predictions about the shape of the distribution of responses across individuals.
+
+### Different accounts of conditional probability judgments
+
+By explaining the incoherence of human probability judgments using coherent mental probabilities, both models have the potential to rescue the larger project of Bayesian cognitive science as applied to everyday beliefs [@chater.etal2020]. However, the two models diverge substantially in their treatment of conditional probability judgments. Bayesian cognitive theories are fundamentally theories of inductive reasoning: Bayes' rule describes how existing beliefs should be updated conditional on the observation of different kinds of evidence. So, treatment of the conditioning of beliefs is at the heart of these theories. 
+
+According to the Bayesian sampler model, conditioning is something that happens in the mental model of the events, not as part of the process of rendering probability judgments. By not assigning any special status to conditional probability judgments, the Bayesian Sampler theory fits neatly into the larger project of Bayesian cognitive science: probability judgments are simply another judgment process applied to the outputs of other (ideally Bayesian) mental models [@chater.etal2020]. 
+
+In contrast, the PT+N model presents a constructive account of conditional probability judgments that is fundamentally non-Bayesian [@costello.watts2016]. According to the PT+N model, conditional probabilities $P(A|B)$ are estimated by a two-stage sampling procedure: first both events $A$ and $B$ are sampled with noise, and then a second noisy process computes the ratio of the events read as $A$ and $B$ over events read as $B$. The probability can be written as:
+
+\begin{align*}
+P_e(A|B) &= P(\textit{read as A}| \textit{read as B}) \\
+& = P(\textit{read as A}|B)P(B|\textit{read as B}) + P(\textit{read as A}| \neg B)P(\neg B|\textit{read as B}) \tag{6}
+\end{align*}
+
+
+Substituting terms according to the PT+N model and then simplifying, the PT+N model predicts conditional probability estimates using the following equation:
+
+$$P_e(A|B) = \frac{(1-2d)^2P(A \land B) + d(1-2d)\big(P(A)+P(B)\big)+d^2}{(1-2d)P(B)+d} \tag{7}$$
+
+This non-Bayesian account of conditional probabiliity judgments separates the PT+N theory quite fundamentally from the Bayesian Sampler and the larger project of Bayesian cognitive science.
+
+
+### Different process-level accounts and predicted response distributions
+
+Outside of conditional probability judgments, the primary difference between the models is the psychological process thought to produce bias in probability judgments: sample reading noise in the PT+N model and Bayesian inference in the Bayesian Sampler model. These process-level differences imply different response distributions. 
+
+In both models, the amount of variability in trial-level responses is related to the number of mental samples drawn, $N$. In the Bayesian Sampler model, assuming $\beta$ is relatively small, $N$ should also help to determine the degree to which responses are shrunk toward .50. In contrast, in the PT+N model the variance across responses and degree of shrinkage are reasonably considered to be independent. Moreover, the Bayesian Sampler model predicts not only shrinkage of probability estimates toward .50, but also a truncation of the response distribution in proportion to $\beta$ and $N$ [@chater.etal2020; @sundh.etal2021]. Thus, modeling the distributions of raw responses holds promise for disentangling the models.
+
+However, there are at least three challenges to directly modeling raw human response data. First, both models are, strictly speaking, discrete and so make a limited set of discrete predictions while assigning zero probability to responses outside that set. Second, and similarly, the truncation in the Bayesian Sampler model also assigns zero probability to respones beyond the truncated range. And third, from a cursory glance it is clear that a majority of human responses are rounded by some unknown degree, with most seemingly rounded to the nearest 5 or 10%. Given the combination of these factors, if fit directly to raw human data the posterior probability of both models is likely to be zero. I return to these challenges and my approaches to addressing them in the results.
+
+## Prior comparisons of the models
+
+### Comparison of participant-level query-averaged responses
+
+Zhu, Sanborn, and Chater [-@zhu.etal2020] compared their Bayesian Sampler model against Costello & Watts’ (2014; 2016; 2017; 2018) PT+N model as explanations for human probability judgments in two experiments. Unfortunately, their results were somewhat equivocal.
+
+Zhu and colleagues [-@zhu.etal2020] measured participants' judgments for each query (e.g. "what is the probability that it will be rainy") on three repeated trials. Their primary quantitative analysis fit the models separately to participants' average response to each query (averaged over three trials). These analyses compare human responses to the models' predictions _in expectation_. After fitting, Bayesian Information Criteria (BIC) values were computed for each participant, which were then used to approximate the posterior probability of each model for each participant, assuming a uniform prior. The researchers found that a preponderance of participants' responses were best-captured by the Bayesian Sampler model. However, a substantial number of participants were instead more strongly fit by the PT+N model. 
+
+Given that these models are proposing quite basic psychological processes, we might expect the same process to be shared across all people. But, the authors do not report on the overall posterior probability of each model if one model is assumed to explain all participants' responses. Such a comparison with these methods would likely be limited in a few ways. First, as they note [@zhu.etal2020], BIC cannot fully account for the differences in the competing models’ complexity [also see @piantadosi2018]. Further, their "unpooled" analysis likely exagerrates the complexity of the models overall and may therefore affect comparisons between them.
+
+#### Accounting for model complexity
+
+There are at least three challenges to accounting for model complexity in the comparison of the PT+N and Bayesian Sampler models. First, the models differ not only in the number of parameters but in the domain of those parameters. Via the bridging conditions, Zhu and colleauges [-@zhu.etal2020] show that assuming $\beta \in [0, 1]$ restricts the "noise level" for the Bayesian Sampler, represented in implied $d$ under the PT+N model, to fall within [0, $1/3$] (approaching $1/3$ as $N$ approaches 1), whereas the PT+N model permits noise values in $[0, 1/2]$.
+
+Second, it is unclear how the PT+N model’s treatment of conditional probabilities impacts its complexity. This structural difference could be a sort of Ptolemaic epicycle adding complexity to the model that should be penalized or it could constitute a commitment to novel predictions that thereby constrain its flexibility.
+
+Finally, Zhu and colleagues [-@zhu.etal2020] decision to fit "unpooled" estimates of all participants individually may exaggerate the complexity of both models. This is especially an issue in differentiating between simple and complex variants, which Zhu and colleauges [-@zhu.etal2020] elect to ignore by averaging the model scores. If there is limited heterogeneity across individuals, then adding a parameter for each participant may effectively over-penalize the complex variants relative to the simple variants. In addition, this could also affect comparisons across the PT+N and Bayesian Sampelr theories: if one model must assume greater heterogeneity in parameter estimates across people, then this model is more complex. Hierarchical models with partial pooling offer a solution that balances between ignoring individual variation and allowing it to vary freely, allowing for an accounting of heterogeneity without over-penalizing in cases where heterogeneity is low.
+
+### Comparison of distributional model predictions
+
+Rather than computing query-level averages across trials for each participant, examining the models' distributional predictions requires modeling participants' raw trial-by-trial responses. As mentioned above, this presents substantial challenges. To address these, Zhu and colleages [-@zhu.etal2020] estimated discrete versions of the Bayesian Sampler and PT+N models by minimizing the Wasserstein distance between participants' raw responses and model predictions. The use of Wasserstein distance rather than a proper likelihood-based measure of model fit helped to minimize issues created by rounding and out-of-support responses, which could otherwise lead both models to assign probability zero to many observations. 
+
+Still, the results of this analysis were largely inconclusive with respect to differentiating the models [@zhu.etal2020]. Specifically, the quality of the fit for each model depended heavily on the maximum number of samples that is assumed possible. For small numbers of samples the Bayesian Sampler model is clearly superior, but for larger numbers of samples, the PT+N model was found to better fit the data. Presumably this is because with small numbers of samples the PT+N model is extremely constrained in the distinct discrete responses it can predict. For small N, both models predict only a limited set of distinct values are possible. However, whereas the size of that set is the same for each model, in the Bayesian Sampler the continuous $\beta$ parameter can shift exactly what those discrete values are, providing it much greater flexibility. However, this complexity goes unpunished in comparisons based on Wasserstein distance.
+
+In later work, Sundh et al [-@sundh.etal2022] examined the distributional properties of participants responses using indirect means, by regressing the variance of participants' responses across trials on their mean response for each query type. Their findings suggest that earlier fits with Wasserstein distance may have produced biased results [@sundh.etal2022]. They reported evidence for the truncation of responses and a correlation between variance and shrinkage parameter estimates across participants. However, their analysis did not enforce that the underlying probabilities driving participants' judgments be coherent (simply estimating the true probability as the mean across trials), nor did they evaluate how frequently participants gave out-of-support judgments that would be inconsistent with the Bayesian Sampler theory.
+
+## The present work
+
+Here, I cast both the Bayesian Sampler and PT+N models into a Bayesian data analysis framework that may permit a more decisive comparison.
+
+First, Bayesian data analysis allows issues of model complexity to be addressed through comparisons of model fit based on modern information criteria, such as Pareto smoothed importance sampling approximate leave-one-out cross validation ($\text{PSIS-LOO}$). Rather than estimating model fit and then penalizing for model complexity, $\text{PSIS-LOO}$ estimates out-of-sample prediction performance directly by estimating the expected log predictive density ($\widehat{\text{elpd}}$) of the model, or the expected probability of new unseen data [@gelman.etal2014; @vehtari.etal2017]. From these calculations, an estimate of model complexity ($\hat{p}_{\text{LOO}}$) can also be derived.[^2] 
+
+[^2]: It is worth recognizing that formal measures of model complexity cannot be expected to perfectly track notions of simplicity or elegance in scientific explanation [for some related discussions, see @kuhn1977; @sober2002; @piantadosi2018]. For instance, even if the PT+N model's account of conditional probability judgments constrains its flexibility empirically, it seems clear this added component makes it more complex as a putative scientific explanation. 
+
+In addition, the Bayesian framework supports straightforward implementation of hierarchical versions of these models with partial pooling. This allows for information about model parameters to be shared across participants, resulting in potential improvements to out-of-sample prediction, reductions in model complexity, and a more realistic test of the models.
+
+Finally, I implement new extensions of these models to directly model participants trial-level responses while accounting for rounding and out-of-distribution response errors---allowing for principled probabilistic tests of the distributional predictions of the models.
+
+# Methods
+
+## Data selection
+
+Zhu, Sanborn, & Chater [-@chater.etal2020] conducted two experiments to compare the PT+N and Bayesian Sampler theories. These experiments asked participants to judge the probability of different events in various combinations. Following prior work by Costello and Watts [e.g. -@costello.watts2016; -@costello.watts2018], both experiments focused on the everyday events of different kinds of weather.
+
+Experiment 1 asked about the events [icy, frosty] and [normal, typical] (e.g. "what is the probability that the weather in England is normal and not typical?").  The authors’ goal was to ask about highly correlated events, but the events used are perhaps nearly perfectly correlated. Because the terms used to describe these events are nearly synonymous, there is a concern about the interpretation of the statements evaluated in this experiment. This is especially clear, as the authors note, for disjunctive query trials such as "normal or typical," where "or typical" might not be read as a disjunction but rather an elaborative clause.  In light of these concerns, I excluded the disjunctive trials from Experiment 1 from my analyses. 
+
+Experiment 2 focused on more moderately correlated events, [cold, rainy] and [windy, cloudy], that do not admit these misinterpretations. In addition, a third experimental condition asking about [warm, snowy] was also included in the experiment, but was dropped from the analyses reported in the paper. Exploring the raw responses from this condition reveals a substantial fraction of "zero" and "one" responses for certain trials. This may reflect a different response process than was intended. For instance, some participants may have engaged in deductive reasoning to judge that it is not possible for the weather to at once be warm and snowy, and therefore responded with zero—failing to properly consider that it is possible (at least logically) for it to be warm and snowy at different times within the same day. Given these potentially aberrant responses, I followed Zhu and colleagues [-@zhu.etal2020] in ignoring data from this condition.
+
+## Modeling Results: participant-level query-averaged responses
+
+I implement several variants of the Bayesian Sampler and PT+N models in a Bayesian framework. These models were implemented in the probabilistic programming language Numpyro. All code and results are available as supplemental materials (https://github.com/derekpowell/bayesian-sampler). 
+
+###  Bayesian implementation of participant-level query-averaged response models
+
+The PT+N model defines expected probability judgments ($P_e$) as:
+
+\begin{align*}
+  P_{e}(A) &= (1-2d)P(A) + d \\
+  P_e(A\land B) &= (1-d^\prime)P(A \land B)+d^\prime \\
+  P_e(A\lor B) &= (1-d^\prime)P(A \lor B)+d^\prime \\
+  P_e(A|B) &= \frac{(1-2d)^2P(A \land B) + d(1-2d)\big(P(A)+P(B)\big)+d^2}{(1-2d)P(B)+d} \tag{8}
+\end{align*}
+
+In contrast, the Bayesian Sampler model defines expected probability judgments as:
+
+\begin{align*}
+  P_{e}(A) &= \frac{N}{N + 2 \beta}P(A) + \frac{\beta}{N+2 \beta} \\
+  P_{e}(A \land B) &= \frac{N’}{N’ + 2 \beta}P(A \land B) + \frac{\beta}{N’+2 \beta} \\
+  P_{e}(A \lor B) &= \frac{N’}{N’ + 2 \beta}P(A \lor B) + \frac{\beta}{N’+2 \beta} \\
+  P_{e}(A|B) &= \frac{N}{N + 2 \beta}P(A|B) + \frac{\beta}{N+2 \beta} \tag{9}
+\end{align*}
+
+Fixing $d$ and $d'$ or $N$ and $N'$ equal yields the "simple" variant of each of the models, which treat conjunctive and disjunctive probability judgments identically to simple probability judgments.
+
+Notice that for each model the probability judgments depend on underlying subjective probabilities, derived from a mental sampling process. These subjective probabilities are unobserved, and must be estimated as a latent variable. Here, they are represented with a four-dimensional dirichlet distribution for each subject, representing the probability of the elementary events ($A \land B$, $\neg A \land B$, $A \land \neg B$, $\neg A \land \neg B$).
+
+Zhu, Sanborn & Chater (2020) implement completely unpooled models with separate $d$, $d'$, $N$, $N'$, and $\beta$ parameters for each participant. Although hierarchical models with partial pooling might be expected to better account for the data and offer a better test of the models, for consistency and comparison with Zhu et al.'s [-@zhu.etal2020] analyses, I first estimated implementations of these unpooled models. Figure 1 displays the translation of the PT+N model into the Bayesian framework, along with a plate diagram representing the dependencies among parameters.
+
+\input{ptn_platediagram}
+
+The function $f_{PT+N}$ computes the expected probability estimate using the underlying subjective probability $p$, the noise parameters $d$  and $d'$, and the relevant equation as defined by the PT+N theory (see supplemental materials for implementation details). Prior predictive checks were conducted for all models to select priors that would be uninformative or minimally informative on the scale of the model parameters $d$  and $d'$. [^3]
+
+[^3]: Uninformativeness was sought in order to reduce bias in the posterior parameter estimates. It should be acknowledged that a uniform prior does not exactly correspond to what the authors of the PT+N theory would predict, as they have frequently assumed $d$ to be a fairly small value [e.g. @costello.watts2017]
+
+Recall that Zhu and colleagues [-@zhu.etal2020] identified a bridging condition relating $\beta$ and $N$ in the Bayesian Sampler model to the $d$ parameter of the PT+N model. To support direct comparisons of the models, I parameterize the Bayesian Sampler model according to the implied $d$  and $d'$, rather than directly according to its $\beta$, $N$, and $N'$ parameters.^[Strictly speaking, under the original form of the Bayesian sampler model, $N$ and $N'$ are discrete parameters representing the number of distinct independent samples drawn. Given a particular implied $d$, this could create constraints on the possible values of $d'$, assuming $\beta$ is held constant. However, Zhu and colleagues [-@zhu.etal2020] also consider the possibility that people draw non-independent mental samples, in which case $N$ and $N'$ would represent the _effective number of samples_, accounting for their autocorrelation. In this case, we could treat this effective number of samples as a continuous quantity, and therefore imagine there are no clear constraints on $d$ and $d'$ except the stipulation that $d \leq d'$.] I constrain $d$ to $[0, 1/3]$ for the Bayesian Sampler model to reflect the assumption that $\beta \in [0, 1]$. This allows the same priors to be used for the corresponding Bayesian Sampler and PT+N models, simplifying their comparison. 
+
+The Bayesian Sampler model is therefore identical to the PT+N model save for the changes to $\mu_{ijk}$, $d$, and $d'$ shown below:
+
+\begin{align*}
+  \mu_{ijk} &= f_{BS}(\overrightarrow{\theta_{jk}}, d_j, d_j)  \\
+  d_j &= \frac{1}{3} \ \text{logistic}(\delta_j) \\
+  d_j’ &= \frac{1}{3} \ \text{logistic}\big(\delta_j + \exp(\Delta\delta_j)\big) \tag{10}
+\end{align*}
+
+Where the function $f_{BS}$ computes the expected probability estimate as prescribed by the Bayesian Sampler theory. 
+
+### Hierarchical implementations of the models
+
+Both of these models can also be implemented as hierarchical models with partial pooling for the $d$ and $d'$ parameters (implicitly, for $N$ and $N'$ in the case of the Bayesian Sampler). This partial pooling can help to regularize parameter estimates and improve out-of-sample predictive performance. In addition, partial pooling effectively reduces model complexity, and could support more realistic comparison between the "simple" and "complex" variants of the models. 
+
+The hierarchical implementation adds parameters for the population-level $d$ and $d'$ as well as a parameter controlling the standard deviation of the distribution for the subject-level effects. For ease of interpretation, the centered parameterization is shown below, although the actual models used a non-centered parameterization to improve sampling efficiency [@papaspiliopoulos.etal2007]. Figure 2 displays the translation of a hierarchical implementation of the Bayesian Sampler model into the Bayesian framework, along with a plate diagram representing the dependencies among parameters.
+
+\input{bs_platediagram_mlm}
+
+Finally, I also explored fitting a hierarchical version of the Bayesian Sampler model that allowed values of $\beta > 1$. Restricting $\beta$ to [0,1] restricts the prior distribution of the Bayesian sampler to the class of "ignorance priors" [@zhu.etal2020]. However, it is also possible that people bring informative priors to the probability judgment task. Indeed, Zhu and colleagues (2020) acknowledge there are situations where an informative prior may be warranted [see e.g., @fennell.baddeley2012]. If $\beta$ is unrestricted, allowed to fall in the domain $[0, \infty]$ then the Bayesian Sampler model becomes more flexible, allowing for equivalent "noise" levels in the same $[0, 1/2]$ range as the PT+N model. That is, through the bridging condition, the implied $d$ approaches $1/2$ in the limit as $N \to 1$ and $\beta \to \infty$. Though it would seem a more fundamental change, this same model may also be seen as a version of the PT+N theory that jettisons its constructive account of conditional probability judgment. Thus, fitting this additional unrestricted model allows for a complete comparison of the models along both of their differing dimensions.
+
+Simulation studies verified that the complex hierarchical PT+N and Bayesian Sampler models can correctly and unbiasedly recover parameters from simulated data (see Supplemental Materials).
+
+### Model comparison 
+
+I fit each of the models specified above to data from Zhu et al’s [-@zhu.etal2020] Experiment 1 and 2 and estimated the expected log predictive density with PSIS-LOO ($\widehat{\text{elpd}}_{\text{LOO}}$) for each combination. Compared with BIC, $\widehat{\text{elpd}}_{\text{LOO}}$ offers a more sophisticated account of model complexity and is more appropriate in the "$\mathcal{M}$-open" case; situations where we do not know if any of the models being compared are the "true" model [@vehtari.etal2019]. Model posteriors were estimated using the Numpyro [@phan.etal2019] implementation of the No-U-Turn Hamiltonian Markov chain Monte Carlo (MCMC) sampler. For each model, four MCMC chains of 2000 iterations were sampled after 2000 iterations of warmup and all passed convergence tests according to $\hat{R}$ [see @gelman.etal2014a]. Figure 3 below displays the estimated differences in $\widehat{\text{elpd}}_{\text{LOO}}$ scores for each of the models as compared to the best-scoring model.
+
+<!-- \begin{figure}[ht] -->
+<!-- \centering -->
+<!-- \includegraphics[width=6in]{plot_compare.png} -->
+<!-- \caption[]{Model comparison results for data from Experiments 1 and 2. Error bars indicate two standard errors of the estimates. Typically, a difference of greater than two standard errors is taken as clear evidence for the superiority of the lower-scoring model (\cite{sivula.etal2020}).} -->
+<!-- \end{figure} -->
+
+```{r, warning=F, message=F, fig.cap='Model comparison results for data from Experiments 1 and 2. Error bars indicate two standard errors of the estimates. Typically, a difference of greater than two standard errors is taken as clear evidence for the superiority of the lower-scoring model [@sivula.etal2020].'}
+py$model_comparison %>% 
+  filter(model!="Relative Freq.") %>% 
+  mutate(ul=d_loo + dse*2, ll = d_loo - dse*2) %>% 
+  ggplot(aes(y=reorder(model,-d_loo), x = d_loo, xmin=ll, xmax=ul)) +
+  geom_vline(xintercept=0, linetype="dashed", color="grey") +
+  geom_point(size=2) +
+  geom_errorbarh(height=.01, size=.5) +
+  facet_wrap(~Experiment, scales="free_x") +
+  labs(x = TeX("$\\widehat{elpd}_{LOO}$ difference"), y = "Model") +
+  theme_bw() +
+  theme(panel.grid=element_blank())
+```
+
+
+Data from Experiment 1 favor "complex" variants of the Bayesian Sampler model compared with the "simple" variants and all versions of the PT+N model. However, there is no clear single winner. As shown in Figure 3, the best-scoring model is an unrestricted variant of the Bayesian Sampler that allows for people to bring informative priors to the probability judgment task, that is, a Bayesian Sampler model allowing $\beta \in [0, \infty]$ (greater values of $\widehat{\text{elpd}}_{\text{LOO}}$ are better). However, the complex and complex hierarchical implementations of the Bayesian Sampler assuming uninformative priors (i.e., restricting $\beta \in [0,1]$) have $\widehat{\text{elpd}}_{\text{LOO}}$ scores within two standard errors of the difference, indicating that these models are also plausible [@sivula.etal2020].
+
+Data from Experiment 2 more decisively reveal a single winning model: the hierarchical "unrestricted" implementation of the Bayesian Sampler model allowing for informative priors.
+
+Figure 4 shows the posterior distributions of the population-level $d$ and $d'$ parameters inferred from the unrestricted Bayesian Sampler model. In Experiment 2, population-level estimates of $d'$ are greater than $1/3$, as are a substantial number of participant-level estimates for $d$ (37 of 83), as shown in Figure X. These values fall outside the range implied by the assumption of "ignorance priors" in the Bayesian Sampler model. Parameters fit to the data from Experiment 1 are more consistent with this assumption, although a substantial proportion of individual participants’ $d$  and $d'$ estimates also lie outside this range (11 of 59 for $d$, 18 of 59 for $d'$). The finding that there are clear differences in $d$  and $d'$ estimated across experiments suggest that the mental sampling processes producing estimates vary in the different conditions, either in terms of the number of samples that are drawn, the noise in reading those samples, or the form of the prior distribution assumed by participants in each context.
+
+<!-- \begin{figure}[ht] -->
+<!-- \centering -->
+<!-- \includegraphics[width=4in]{plot_params.png} -->
+<!-- \caption{Posterior density of population-level $d$  and $d'$ parameters estimated from the unrestricted hierarchical Bayesian Sampler model for data from Experiments 1 and 2. Dashed line indicates theoretical maximum values for Bayesian Sampler model with uninformative priors.} -->
+<!-- \end{figure} -->
+
+```{r, fig.cap="Posterior density of population-level $d$  and $d'$ parameters estimated from the unrestricted hierarchical Bayesian Sampler model for data from Experiments 1 and 2. Dashed line indicates theoretical maximum values for Bayesian Sampler model with uninformative priors."}
+plt_d_avgmodel + plt_d_trialmodel + plot_layout(ncol=1, guides="collect") & labs(x="Estimate") & theme_bw() & theme(panel.grid=element_blank())
+
+```
+
+```{r, fig.cap = "Participant-level estimated d and d' values across Experiments 1 and 2. Error bars indicate 95% CIs."}
+(plt_forest_exp1 + coord_fixed(ratio=59/.5)) + 
+  (plt_forest_exp2 + coord_fixed(ratio=59/.5)) + 
+  plot_layout(guides="collect") & theme(legend.position = 'bottom')
+```
+
+Recall, the unrestricted Bayesian Sampler model may also be seen as a version of the PT+N theory that excises its constructive account of conditional probability judgments. So, comparing the PT+N models to the unrestricted Bayesian Sampler model offers a test of the PT+N's constructive account of conditional probability jugments. Comparing predictions from the unrestricted Bayesian Sampler model and the best-fitting PT+N model, we see that the Bayesian Sampler model better captures these judgments from both experiments (see Table 2). This is true for both query-level averages as well as for individual participants' trial responses. And comparing their predictions specifically for conditional probability judgments, the unrestricted Bayesian Sampler again provides a better fit, especially for the modestly-correlated events of Experiment 2 (Exp 1: response-level $r$ = .91 vs. .89 (_p_ < .05); query-level $r$ = .98 vs. .97; Exp 2: response-level $r$ = .72 vs. .67 (_p_ < .01); query-level $r$ = .92 vs. .85) These findings suggest that conditioning is better seen as part of a mental model of the events than as part of the probability judgment process. 
+
+Table 2 also presents estimates of $\hat{p}_{\text{LOO}}$, the estimate of the effective number of parameters for each model. Compared to the Bayesian Sampler model, the PT+N model with its constructive account of conditional probability judgments has a similar penalty term estimate when fit to Experiment 1, but has a smaller penalty term when fit to Experiment 2, despite having the same parameterization in terms of $d$  and $d'$. Although its special treatment of conditional probability judgments makes it more complex as a putative scientific explanation, this structural component appears to actually constrain its predictive flexibility. However, this constraint leads to a worse-fitting model.
+
+Perhaps surprisingly, the Bayesian Sampler with unrestricted $\beta$ actually receives a smaller penalty term than the more "restricted" version of the model for the data in Experiment 2. This is at first counterintuitive. However, model complexity depends not only on the model and priors, but also the observed data [see @gelman.etal2014]. To illustrate, Gelman and colleagues consider a case where a parameter is constrained to be positive and its value is then estimated from data [-@gelman.etal2014]. If the estimated value is some very large positive number, then the constraint won’t have been very informative. But, if the estimated value is very close to zero, then the constraint that the parameter is positive will provide substantial information and the model’s penalty term will therefore be smaller. Here, it seems reasonable to conjecture that because the implied $d$  and $d'$ estimated from Experiment 2's data are both very near $1/3$ under this model, the restriction results in posterior estimates of the linear parameters that are relatively far from the prior, which can result in a greater penalty.
+
+The dependence of complexity penalties on observed data may strike some as an undesirable feature of model comparison through information criteria like $\text{PSIS-LOO}$. Indeed, it is worth acknowledging that principled model comparison is still an area of active inquiry, with differing perspectives [e.g.  @gronau.wagenmakers2019; @vehtari.etal2019]. Fortunately, in this case, comparisons between the models do not rest solely on differences in estimated model complexity.
+
+```{r table2, echo=FALSE, message=F, warning=F}
+### NOTE: be sure to rescale elppd_loo to deviance scale to report as loo_ic 10/15/21, 2:37 PM
+
+t2_df <- read_csv("model-comparison-table.csv")
+
+t2_df %>% 
+  select(-`...1`) %>% 
+  gather(measure, value, -Experiment, -model) %>% 
+  pivot_wider(names_from = c(Experiment, measure), values_from=value,names_sort = T) %>% 
+  rename(Model = model) %>%
+  kbl(
+    caption="Bayesian model comparison results with best scoring model in bold face.", 
+    digits=3, 
+    booktabs=T,
+    col.names = c("Model", "$\\widehat{\\text{elpd}}_{\\text{LOO}}$", "$\\hat{p}_{\\text{LOO}}$","$r_{resp}$", "$r_{query}$", "$\\widehat{\\text{elpd}}_{\\text{LOO}}$", "$\\hat{p}_{\\text{LOO}}$","$r_{resp}$", "$r_{query}$"),
+    escape = F
+    ) %>%
+  add_header_above(c(" ", "Experiment 1"=4, "Experiment 2"=4)) %>% 
+  kable_classic(full_width=F) %>% 
+  kable_styling(latex_options="scale_down") %>% 
+  row_spec(1, bold=TRUE)
+```
+
+Zhu and colleageus [-@zhu.etal2020] demonstrated that the Bayesian Sampler model can capture a set of probabilistic identities developed by Costello, Watts, and colleagues [@costello.watts2016; @costello.etal2018] that capture some of the incoherence in people's probability judgments. Following the design of the present experiments, these identities involve combinations of probability estimates for different combinations of two events $A$ and $B$ that should all be equal to zero according to probability theory. Under the Bayesian Sampler and PT+N theories, however, some of these identities should be zero, but some are allowed to take on other values. Figure X shows the average prediction of the winning model against the average observed value for each equality. Consistent with prior findings, this model captures these identities quite closely.
+
+```{r, fig.cap="Average model predicted and observed values for the 18 identities. Note that the Bayesian Sampler but not the PT+N model is capable of predicting non-zero values for identities Z10 through Z13. In Experiment 1, like participants' responses, the model's estimates are very slightly positive for \\{icy, frosty\\} and very slightly negative for \\{normal, typical\\}. This pattern replicates the qualitative pattern reported by Zhu and colleagues."}
+plt_ineq_exp1 + labs(title="Exp. 1") + 
+  plt_ineq_exp2 + labs(title="Exp. 2") + 
+  plot_layout(guides="collect") & theme(legend.position="bottom") & labs(color="", y = "Estimate", x = "Identity")
+```
+
+Finally, it is worth noting that the best of these models provide quite strong overall fits to the data, not just for the query averages, but also for the query averages across individual participants as seen from the correlations between predicted and observed responses in Table 2. Figure X shows the correlation between participants' responses across all trials and the best-performing model's predictions. 
+
+```{r, fig.cap='Posterior predictions for best-fitting model and participants responses in Experiments 1 and 2.'}
+plt_pp
+```
+
+
+## Raw trial-level response distributions
+
+Comparisons of the models' predictions in expectation have been revealing, but cannot decisively rule between the different process-level psychological theories behind the models. To address this question, response distributions must be considered.
+
+Recall, in contrast to a noise-based account, the Bayesian Sampler theory predicts both a truncation of the response distribution as well as a correlation between the degree of shrinkage in probability estimates and the variability of those estimates trial-to-trial (assuming $\beta$ is relatively small). Because the Bayesian Sampler applies a Bayesian adjustment after sampling, it predicts probability judgments will always lie between $d$ and $1 - d$, even when zero positive or negative mental samples are drawn (see Equation X and the bridging condition, Equation X). First, it bears noting that the truncated response distribution implied by the Bayesian Sampler model appears at odds with the raw response data.  However, participants' responses frequently lie outside the range implied by the best estimates of their $d$ parameters: XX% in Experiment 1 and XX% in Experiment 2. 
+
+Yet comparing the distributional predictions of the models more rigorously poses three challenges: 1) the discrete nature of the models suggests a limited set of allowable responses, assigning zero probability to all others, 2) Bayesian adjustment implies truncation of the support of the response distribution, again assigning zero probability to other response values and 3) participants routinely round their responses, complicating both of the previous issues. 
+
+In the following set of analyses I attempt to lay out a set of reasonble assumptions that permit participants' trial-by-trial responses to be modeled and used to compare the theories' predictions. To do so, I first extend the models so as to render them fully continuous in their latent space. I then marry them with a specific model of response errors. Thus the models compared in the following analyses are not identical to those originally proposed by Zhu et al [-@zhu.etal2020] and Costello and Watts [-@costello.watts2014]. However, they do provide implementations of the theories' process-level accounts, and thus a means to test the distributional predictions of models based on Bayesian adjustment against models based on sampling noise.
+
+### Continuous extensions of the models
+
+Under both models, the variability of people's responses trial-to-trial is driven by the number of mental samples drawn: more mental samples produce less-variable responses. However, if the number of samples is considered to be a truly discrete quantity, then only a limited number of discrete responses are possible. As Zhu and colleauges [-@zhu.etal2020] note, this is somewhat implausible on its face and their later work has abandoned this assumption [@zhu.etal2021].
+
+At the same time, from a pragmatic perspective it is highly desirable that all latent parameters within the models be continuous. The models would be far more tractable to fit if, rather than including a latent Binomial variable representing the discrete number of samples drawn, we could instead model a continuous proportion of samples using, for instance, a Beta distribution.
+
+Zhu and collauges [-@zhu.etal2020] introduce the possibility of an "autocorrelated" Bayesian Sampler model under which samples are assumed to be autocorrelated (ideas which were advanced further in [@zhu.etal2021]). As autocorrelated samples provide less information than i.i.d samples, they should be weighted when computing probability estimates. The idea is that people actually draw N autocorrelated samples that approximate some smaller $N_{\text{eff}}$ i.i.d samples. Assuming the true number of samples drawn, N, is allowed to vary somewhat noisily, then a model based on autocorrelated samples would no longer be limited to predicting a discrete set of possible responses. 
+
+What distribution of mental samples would such a process form? Figure X shows the result of a simulation study examining probability estimates drawing on autocorrelated samples with estimated weights. Each simulation consists of a simple discrete Markov chain generating autocorrelated samples at $x_t$, returning $x_{t-1}$ with probability $p_{a}$, or else returning a new sample distributed Bernoulli($p$) was simulated. The setting of $p_a$ controls the degree of (positive) autocorrelation in the chain. Given the degree of autocorrelation in a sample, a weight is initially estimated as $N_{\text{eff}}/N$ and an appropriate number of samples $N$ are drawn to produce $N_{\text{eff}}$ samples. A probability estimate is then calculated from these samples. As the figure shows, for large-enough autocorrelation values ($p_a$) the resulting distribution becomes quite smooth, with the exception of spikes at zero and one for small to moderate values of $N_{\text{eff}}$. This occurs when all samples are zero or all one, because $\sum_i^N0 \cdot w_i = 0$ for any $w_i$ and $\sum_i^N 1 \cdot w_i = 1$ for any weights $\sum_i^N w_i = 1$. 
+
+< Figure of simulation study >
+
+Sampling processes producing zero positive or negative examples should produce heaping of responses at zero and one under the PT+N model and at $d$ and $(1-d)$ under the Bayesian Sampler model. Compared against human judgment data, it is at least clear that actual human judgments do not equal zero or one as frequently as would be expected under the PT+N model using such a sampling process. Visual inspection of histograms of each participants' judgments and their estimated $d$ parameters also make clear that heaping at $d$ and $(1-d)$ is frequently absent (see Supplemental Materials).
+
+One possibility is that there is another source of error that explains these discrepancies, for instance that people just tend to avoid giving "extreme" responses. Another possibility is that the mental sampling process somehow enforces sampling of both positive and negative examples. A mental sampling process must start somewhere, and these initialization point(s) may influence judgments. For example, features of the initializations of mental sampling processes have been proposed to anchoring [@lieder.etal2013] and unpacking effects [@dasgupta.etal2017; also see @sanborn.chater2016]. In this spirit, one possible explanation for the relative absence of extreme responses is that people draw samples following two initializations, initializing sampling with both a positive and negative instance. As the simulations in Figure X show, this produces a predicted response distribution that is  approximately $Beta(1 + p N_{\text{eff}}, 1+(1-p)N_{\text{eff}})$.
+
+Incorporating these assumptions provides a psychologically plausible mechanism to permit the use of a Beta distribution to approximate the latent sampling process, rendering both of the models' latent parameters continuous. Note that this process will also itself produce some  shrinkage in the probability estimates, and this shrinkage will be somewhat sensitive to the number of samples drawn in both the Bayesian Sampler and PT+N models. Nevertheless the dependency between shrinkage and variance remains stronger for the Bayesian Sampler model and it is only the Bayesian Sampler model that predicts a truncation of the response distribution.
+
+### Mixture modeling: rounding and contaminants
+
+Creating continuous extensions of the models makes their estimation more tractable. However, a specific model of participants' response processes and errors is still needed to capture rounded and out-of-support responses. To address these challenges, I implemented variants of the PT+N and Bayesian Sampler models within discrete mixture models allowing for varying rounding policies as well as "contaminant" responses generated by noise processes outside the models.
+
+First, it is clear that participants have rounded a majority of their responses. This sort of rounding can be modeled by a categorical distribution across the discrete possible rounded responses. Each rounded response category corresponds to a set of cut points, $a$ and $b$, with the probability of the categorical response defined by the CDF of the Beta distribution.
+
+$$P([a,b)) = B(a, \mu N, (1-\mu)N) - B(b, \mu N, (1-\mu)N) \tag{11}$$
+
+Where $B$ is the cumulative distribution function of the underlying latent distribution. As participants were allowed to respond freely with whole numbers from 0 to 100, the exact rounding policy for each response is unknown. Nevertheless these rounding policies can be estimated via mixture modeling. For simplicity, rounding to the nearest 5% was enforced for all responses. Then, the probability of these categorical responses are computed for 21 and 11 categories (corresponding to rounding to 5% and 10%). These probabilities were combined along with a uniform probability representing "contaminants" according to mixing probabilities $\phi$, distributed with a Dirichlet prior (see Appendix for further implemenatation details). 
+
+The Bayesian Sampler model predicts a truncated range of possible responses given $\beta$ and $N$ (and consequently, implied $d$). Modeling these different rounding processes allows for at least some out-of-bounds responses to be accounted for by rounding processes (e.g. when an allowable response of .14 is rounded to the out-of-bounds value of .10). However, some participant response still cannot be accounted for by the model. Instead, these responses are treated as "contaminants" generated by a random response process. Modeling "contaminant" response processes allows the Bayesian Sampler model to be fit in the presence of true outliers. Identifying the estimated proportion of "contaminant" responses can also provide a check on the models: if a model can only be fit by assuming a large proportion of contaminant responses, this suggests it is likely not a good model of human behavior.
+
+### Trial-level noise-based model
+
+Compared to the query-averaged model, the trial-level noise-based model adds two features: mixture components for rounding and contaminants and subject-level varying $N$ in place of a fixed $K$ parameter. This model's implementation and the implementation of its mixture components is depicted in Figure X. However, note that $N$ is allowed to vary independently from $d$, allowing for independence between response shrinkage and variability. Moreover, the latent distribution used to calculate categorical cut points is an untransformed Beta distribution.
+
+\input{trial_level_mlm_noise_based}
+
+### Trial-level Bayesian Sampler model
+
+Above we found that an autocorrelated sampling process could be reasonably approximated by a Beta distribution. Taking the original Bayesian Sampler model
+
+$$\hat{P}_{BS}(A) = \frac{S(A)}{N+2\beta} + \frac{\beta}{N+2\beta} \tag{12}$$
+
+We can replace the number of successes $S(A)$ (distributed binomial) with the quantity $\rho(A)N$, where $\rho(A)$ represents the Beta-distributed sample proportions generated by the autocorrelated sampling process outlined above. 
+
+$$\hat{P}_{BS}(A) = \frac{\rho(A)N}{N+2\beta} + \frac{\beta}{N+2\beta} \tag{13}$$
+
+Then it is plain that $\hat{P}_{BS}(A)$ is a transformation of $\rho(A)$, and therefore a transformed Beta distribution (see Appendix for derivation). Figure X below diagrams the entire Bayesian Sampler model, now parameterized in terms of $\beta$, $N$, and $N'$.
+
+\input{trial_level_mlm_bs}
+
+This model assumes that the number of samples drawn on each trial is fixed as $N$ or $N'$ accordingly (modulo the uncertainty about these parameters). However, it also seems reasonable to imagine that the number of samples drawn in fact varies from trial-to-trial. This added complexity is likely ignorable for a noise-based model, but could be important for the Bayesian Sampler model, as the number of samples drawn affects the truncation of the response distribution. That is, allowing the number of samples drawn to vary across trials may allow the model to capture some respnses that would otherwise be treated as contaminants. To capture this, the model can be given one additional extension to allow the number of samples to vary, by adding a new parameter $N_{trial}$. This parameter multiplies the number of samples as a fraction of each individual participants' average number of samples drawn, e.g. so that a participant might sometimes draw 1.5x or 2x the number of samples they typically draw. The appropriate amount of variation in $N_{trial}$ is constrained to be fairly small, but is estimated hierarchically: I assume $log(N_{trial}) \sim N(0,\sigma_{N_{trial}})$ and $log(\sigma_{N_{trial}}) \sim (-1, .3)$.
+
+
+## Model comparison: Raw trial-level response models
+
+Prior to fitting the models, response data were rounded to the nearest 5%. Nearly all responses (XX%) were already divisible by five, and this was necessary to speed model fitting. Even still, estimating model posteriors for the trial-level mixture models using MCMC proved intractable. Instead, model posteriors were estimated using Stochastic Variational Inference (SVI) with Numpyro [@phan.etal2019] using a multivariate Normal guide [e.g. @kucukelbir.etal2015] and 10,000 SVI steps. Estimating each model posterior took about 40 minutes on an Nvidia V100 GPU. Simulation studies verified that this estimation approach could reliably recover parameters from simulated data (see Supplemental Materials).
+
+Table X shows the scores of each model fit to the trial-level data in Experiments 1 and 2. From the quantitative model comparison it is clear that the noise-based model is superior, with substantialy lower $\widehat{\text{elpd}}_{\text{LOO}}$ than both of the competing Bayesian Sampler implementations in both experiments.> 
+
+< table X: model comparison results >
+
+The models' performance can be better understood by examining the two main features about which the models' predictions depart: truncation of the response distribution and shrinkage-dependent variance of responses.
+
+The non-varying Bayesian Sampler model fits quite poorly and is estimated to have a large proportion of "contaminant" responses (X% in experiment 1, X% in experiment 2). This is likely due to a lack of the predicted truncation of the response distribution. As with the trial-average models, the estimates of implied d are quite high, which would predict substantial truncation. As mentioned earlier, many of participants' responses fall outside the range implied by their most likely implied d values. 
+
+Allowing the effective number of samples drawn to vary trial-by-trial improves the fit of the Bayesian Sampler model substantially and decreases the estimated proportion of contaminant responses (X% in experiment 1, X% in experiment 2). Nevertheless, these results still indicate inferior fit compared with the noise-based model, which has substantially lower $\widehat{\text{elpd}}_{\text{LOO}}$ and again attributes fewer responses to the contaminant process (X% in experiment 1, X% in experiment 2).
+
+Second, we can examine the shrinkage-variance relationship. In the noise-based model, N and d were allowed to vary freely. But if these quantities indeed are actually correlated as predicted by a Bayesian adjustment model, then we should expect to nevertheless see a correlation between the subject-level estimates in these parameters. Figure X shows a scatterplot of these estimates. Looking across subjects we see they are mostly uncorrelated, against the second BS prediction. >
+
+```{r, fig.cap = "Scatterplots showing the relationships between subject-level d and N estimates from the trial-level noise-based model for Experiments 1 and 2. Figure for Experiment 1 excludes some outlier paricipants who gave repetitive resposnes that resulted in abnormally high N-values. Error bars indicate 95% CI.  Although there is a slight negative correlation in Experiment 1, this is driven by only a handful of participants with extreme values and in Experiment 2 the pattern appears to if anything be reversed."}
+
+plt_dk_ptn1  + plt_dprimek_ptn1 + plt_dk_ptn2 + plt_dprimek_ptn2
+```
+
+Comparing the d values inferred from the trial-level model we see they are similar to but generally smaller than those estimated in the trial-averaged model. This is likely because the hypothesized initialization process accounts for some of the shrinkage in participants' responses, so that less need be attributed to sample read noise. However, the numbers estimated in Experiment 2 are still substantially larger than in most prior work [cite].
+
+# Discussion
+
+Fit to the average of participants' responses over blocks, there is a single clear winner: a model without any special treatment of conditional probability (ala the Bayesian Sampler model) and allowing for an implied $d$ parameter $\in [0,.5]$. This model could be interpreted either as a variant of the Bayesian Sampler without restriction on its $\beta$ parameter, or as a variant of the PT+N model that removes its account of conditional probability judgments. 
+
+In either case, these findings make clear that the Bayesian Sampler theory provides a superior account of conditional probability judgments in this task. In keeping with the larger theoretical framework of Bayesian cognitive science, the Bayesian Sampler theory assumes that subjective probabilities underlie people’s probability judgments, and that conditional probability judgments are produced by Bayesian conditioning occurring in their mental models of the events in question, rather than as arising from the probability judgment process [@chater.etal2020; @zhu.etal2020].
+
+The unrestricted BS model and PT+N with Bayesian conditional probability judgments cannot be distinguised by their predictions about expected responses. However, they remain substantively different models positing different process-level accounts of probability judgments. Both accounts rely on the concept of mental sampling. But in the BS model the samples are integrated with a Bayesian prior to produce a judgment, whereas in the PT+N model, noise in the sample-reading process produces bias. 
+
+The Bayesian adjustment process hypothesized by the Bayesian Sampler model makes two clear predictions about the distribution of participants' responses. First, this implies a truncated range of possible responses. Second, assuming that $\beta$ is constrained to be a relatively small value, then under the Bayesian Sampler model, $N$ influences both the degree to which responses are shrunk toward .50 and the variability of those responses trial-to-trial. Thus, participant's inferred $N$ values should be somehow correlated with the noise in their trial-level responses. In contrast, under the noise-based account of the PT+N model, there is no truncation of responses and no predicted correlation between shrinkage and response variability.
+
+Directly fitting the models to these trial-level human response data presents several challenges addressed here by creating continuous extensions of these models and incorporating additional modeling of response processes. Though not identical to the models as originally proposed, this exercise allowed for tests of the key distributional predictions of the theories. Neither of the Bayesian Sampler's predictions appear to be borne out by the data. First, participants' responses frequently fall outside the truncated range implied by the parameters estimated under the Bayesian Sampler model. Fit to the raw data, this requires treating an unreasonably large proportion of responses as "contaminants". Second, the degree of shrinkage in participants' responses and the variability in those responses appear largely uncorrelated. 
+
+Altogether then, the distributions of participants' responses are more consistent with the PT+N theory's account of sampling noise than the Bayesian adjustment implied by the Bayesian Sampler theory. In the end, I find the best overall account of participants' probability judgments is a continuous extension of the PT+N theory without any special treatment of conditional probability judgments.
+
+## Remaining questions and limitations
+
+Despite the model's quantitative success, some more qualitative questions remain. First, it bears asking: how plausible are the parameter values inferred from the model? Many participants' estimated $d$ and $d'$ parameters were quite high---potentially against the spirit of the original PT+N model. This model bounds $d$ at .50 in principle, but a sample-reading process with such high error-rates may or may not be plausible. In prior work simulations have often assumed values of $d$ around .10 (Howe & costello, 2020; Costello & Watts, 2017)]. Further research examining what factors might affect the mental sampling and reading processes (e.g. task complexity, distractions, prior experience) might help to shed light on the plausibility of $d$ estimates in different contexts.
+
+High estimates of $d$ parameters might also call into question arguments for the rational utility of such a process. Zhu and colleagues argue that the regularizing effect of bayesian adjustment should be seen as adaptive. They also consider that "noise" might give an algorithmic-level solution to the computation-level goals defined by the Bayesian Sampler [-@zhu.etal2020]. Even high implied $d$ values might be consistent with rational inference in cases where the number of effective mental samples is very low. For instance, a beta(2,2) prior is only modestly informative, but could produce $d = .40$ if $N=1$. However, if more samples are drawn then high $d$ values would correspond to potentially inflexible and suboptimal priors (i.e. too large $\beta$ values). From the results, it is clear there are some individuals with both relatively high $d$ and $N$ values, which may press somewhat against the rational justification for the desirability of sampling noise.
+
+As noted, the comparisons of these models using trial-level data rests on a number of elaborating assumptions to support fitting of the models. In particular, the models' implementations incorporate additional assumptions and approximations of the autocorrelated nature of mental samples and of ancillary error processes (e.g. rounding). It should be recognized that different assumptions may have produced different results, and other error processes remain possible. Although other indirect analysis approaches might be designed to avoid these concerns [e.g. @sundh.etal2021], ultimately it seems crucial that cognitive models at some point be fit to the actual human behaviors of interest.
+
+Finally, one important direction for future elaborations of sampling-based theories are more rigorous theories of realistic mental sampling processes, including details of the initialization and autocorrelation among samples. Here, I proposed a relatively-highly autocorrelated sampling process initialized with a positive and negative example to account for qualitative features of participants' response distributions and to support a simple approximation. Future work might explore the details of these processes and incorporate them into models of probability judgments in more rigorous ways.
+
+## Conclusions
+
+The implications of sampling-based models like the Bayesian Sampler and PT+N theory go well-beyond the probability judgment task itself: these models esssentially rescue probabilistic theories of cognition by rejecting the explicit representation of probabilistic credences. Instead, credences are emergent properties of mental models that probabilistically generate samples [@chater.etal2020]. 
+
+Clear models of these processes offer the potential to support a measurement model for probabilistic beliefs. Indeed, by representing the "true" subjective probabilities as a latent variable, Bayesian data analysis allows those underlying credences to be inferred. Examining the model posteriors here reveals these estimates often come with considerable uncertainty, but at least for some participants they can be estimated with useful levels of precision. Of course, Zhu and colleagues’ [-@zhu.etal2020] experiments were never designed for this purpose. Future research could explore how estimates of people's credences might be made more reliable, and how inferences about these mental probabilities might be integrated with other Bayesian models of reasoning [e.g. @franke.etal2016; @jern.etal2014; @griffiths.tenenbaum2006]. For instance, people's responses in various reasoning tasks are often explicitly related to inferred subjective mental probabilities [e.g. @jern.etal2014], so accounting for biases in those reports may permit more rigorous model testing. One particularly promising direction could be to integrate these models with formal models of belief revision, which might then shed new light on these fundamental cognitive processes [e.g. @cook.lewandowsky2016; @jern.etal2014; @powell.etal2018].
+
+\pagebreak
+
+# Appendix
+
+For the trial-level response models participants' rounded responses are modeled as discrete responses with a categorical (multinomial) distribution. For $i \in \{0,1, ...,m\}$ where $m=20$ possible responses, define a set of cut points $a_i =  \frac{i}{m}-\frac{1}{2m}$ and $b_i = \frac{i}{m}+\frac{1}{2m}$. Using $x|_{[0,1]}$ to denote that $x$ is restricted to the domain $[0,1]$, the probability of each response given $\mu$ and $N$ is:
+
+$$
+\begin{aligned}
+p_{i,5} &= P([a_{i,5},b_{i,5})) \\
+& = B(a_{i,5}|_{[0,1]}, \mu N, (1-\mu)N) - B(b_{i,5}|_{[0,1]}, \mu N, (1-\mu)N)
+\end{aligned}
+$$
+
+Where $B$ is the appropriate cumulative distribution function. To capture rounding to 10 we define $a_{i,10} =  \frac{2i}{m}-\frac{1}{m}$ and $b_i = \frac{2i}{m}+\frac{1}{m}$, so that the probability of each response is:
+
+$$
+p_{i,10} = \begin{cases}
+  P([a_{i,10},b_{i,10})) & \text{i is even} \\
+  0  & \text{i is odd}
+\end{cases}
+$$
+
+Next defined a vector of mixture probabilities $\overrightarrow{\phi}$, with the zeroth index indicating a "contaminant" process. Combining these response processes, we can define the marginal probability of each response as:
+
+$$
+p_i = \frac{1}{21} \phi_0 + p_{i,5} \phi_1 + p_{i,10} \phi_2
+$$
+
+And then responses themselves are distributed Categorical:
+
+$$
+y_i \sim Categorical(\overrightarrow{p})
+$$
+
+For the noise-based model, $B$ is the incomplete Beta function, the CDF of the Beta distribution. The computations for the Bayesian Sampler model response probabilities are identical save that instead of $B(x, \alpha, \beta)$ we have $B(f_{BS}^{-1}(x), \alpha, \beta)$ when computing the probability of each response $p_i$, and we use $N$ and $N'$ where appropriate. To see this, let $X$ be the Beta distribution success proportions from the mental sampling operations, $\rho(A)$, and let $Y$ be the distribution of resulting probabilities from the Bayesian sampler model. Then  $Y = g(X)$ where $g$ is the function defined in equation 13 from the manuscript. 
+
+$$\hat{P}_{BS}(A) = \frac{\rho(A)N}{N+2\beta} + \frac{\beta}{N+2\beta} \tag{13}$$
+
+Letting $F_X$ and $F_Y$ be the CDF of $X$ and $Y$ respectively, we have that:
+
+$$
+F_Y(y)= P(Y\leq y) = P(g(X)\leq y) = P(X\leq g^{-1}(y)) = F_X( g^{-1}(y))
+$$
+
+Putting this all together, define $Z_{NB}$ as the function which calculates the probability of each categorical response under the noise-based model given the inputs of $\mu_{ijk}, d_j, d'_j$ and $\phi$. Here, $\mu_{ijk} = f_{\text{NB}}(\overrightarrow{\theta_{jk}}, d_j, d'_j, x_{ijk})$ computes the expected probability according to the PT+N theory except that it treats conditional probability judgments like simple probability judgments.
+
+Finally, define $Z_{BS}$ as the function which calculate the probability of each categorical response under the Bayesian Sampler model. Note that, here, $\mu_{ijk} = f_0(\overrightarrow{\theta_{jk}}, x_{ijk})$ where the value of $\mu$ depends only on the underlying probabilities and query asked on a specific trial. 
+
+
+\pagebreak
+
+# Declarations
+
+### Funding
+
+No funding was obtained for this study.
+
+### Conflict of Interests
+
+The author declares no conflicts of interest.
+
+### Availability of Data and Materials
+
+This paper presents secondary analyses of data. The datasets generated and/or analysed during the current study are available at https://osf.io/mgcxj/files/. 
+
+### Code availability
+
+All analysis code is available at https://github.com/derekpowell/bayesian-sampler and at https://osf.io/bpkjf/.
+
+### Author contributions
+
+Derek Powell is the sole author of this manuscript.
+
+### Ethical approval
+
+Not applicable.
+
+### Consent to participate
+
+Not applicable.
+
+
+### Consent to publish
+
+Not applicable.

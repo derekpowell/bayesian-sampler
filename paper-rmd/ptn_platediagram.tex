@@ -1,4 +1,7 @@
-\begin{tikzpicture}
+\begin{figure}
+  \begin{minipage}{.5\textwidth}
+    \flushright
+    \begin{tikzpicture}
 
      % Define nodes
      \node[obs]                               (y) {$y_{ijk}$};
@@ -34,4 +37,23 @@
 
    %   \plate {} {(mu)(y)(p)(mup.north west)(mup.south west)} {$M$} ;
 
-   \end{tikzpicture}
+\end{tikzpicture}
+  \end{minipage}%
+  \begin{minipage}{.5\textwidth}
+    \flushleft
+    \small
+    \begin{align*}
+      y_{ijk} &\sim Beta\big(\mu_{ijk} \kappa, (1-\mu_{ijk}) \kappa \big) \\
+      \mu_{ijk} &= f_{PT+N}(\overrightarrow{p_{jk}}, d_j, d_j)  \\
+      d_j &= \frac{1}{2} \ \text{logistic}(\delta_j) \\
+      d_j’ &= \frac{1}{2} \ \text{logistic}\big(\delta_j + \exp(\Delta\delta_j)\big) \\
+      \overrightarrow{p_{jk}} &\sim Dirichlet(\overrightarrow{1}) \\
+      \delta_j &\sim Normal(0,1) \\
+      \Delta\delta_j &\sim Normal(0,1) \\
+      \kappa &\sim \mathit{Half \hyph Cauchy}(20)
+    \end{align*}
+  \end{minipage}
+  \caption{Complex unpooled PT+N model diagram and formula specifications. Circular nodes are parameters, shaded nodes are observations, and squared nodes are deterministic functions of parameters. Plates signify values defined for $i$ trials, $j$ participants, and $k$ conditions.}
+\end{figure}
+
+

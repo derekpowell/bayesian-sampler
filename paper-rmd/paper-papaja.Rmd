@@ -56,6 +56,7 @@ header-includes:
 
 ```{r setup, include = FALSE}
 library("papaja")
+options(encoding = "UTF-8")
 r_refs("references.bib")
 ```
 
@@ -317,38 +318,8 @@ One thing this model comparison has not decided, and likely *cannot* decide, is 
 
 Finally, some of the most interesting implications of these models go well beyond the probability judgment task itself: the models both support a probabilistic account of beliefs [@chater.etal2020]. Indeed, by representing the "true" subjective probabilities as a latent variable, Bayesian data analysis allows those underlying credences to be inferred. Examining the model posteriors here reveals these estimates often come with considerable uncertainty, but at least for some participants they can be estimated with useful levels of precision. Of course, Zhu and colleagues’ [-@zhu.etal2020] experiments were never designed for this purpose. Future research could explore how estimates of people's credences might be made more reliable, and how inferences about these mental probabilities might be integrated with other Bayesian models of reasoning [e.g. @franke.etal2016; @jern.etal2014; @griffiths.tenenbaum2006]. For instance, people's responses in various reasoning tasks are often explicitly related to inferred subjective mental probabilities (e.g. @jern.etal2014), so accounting for biases in those reports may permit more rigorous model testing. One particularly promising direction could be to integrate these models with formal models of belief revision, which might then shed new light on these fundamental cognitive processes [e.g. @cook.lewandowsky2016; @jern.etal2014; @powell.etal2018].
 
-\pagebreak
+# References
 
-# Declarations
+::: {#refs custom-style="Bibliography"}
+:::
 
-### Funding
-
-No funding was obtained for this study.
-
-### Conflict of Interests
-
-The author declares no conflicts of interest.
-
-### Availability of Data and Materials
-
-This paper presents secondary analyses of data. The datasets generated and/or analysed during the current study are available at https://osf.io/mgcxj/files/. 
-
-### Code availability
-
-All analysis code is available at https://github.com/derekpowell/bayesian-sampler and at https://osf.io/bpkjf/.
-
-### Author contributions
-
-Derek Powell is the sole author of this manuscript.
-
-### Ethical approval
-
-Not applicable.
-
-### Consent to participate
-
-Not applicable.
-
-### Consent to publish
-
-Not applicable.

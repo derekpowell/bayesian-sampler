@@ -1,0 +1,478 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(latex2exp)
+library(reticulate)
+use_condaenv("bsampler")
+```
+
+
+```{python}
+# import numpyro
+# numpyro.util.set_host_device_count(4)
+# import numpyro.distributions as dist
+# from numpyro.infer import MCMC, NUTS, Predictive, DiscreteHMCGibbs
+
+from jax import numpy as jnp
+from jax import random
+
+import numpy as np
+import pandas as pd
+# import seaborn as sns
+import arviz as az
+
+# from dfply import *
+from siuba import _
+import siuba as s
+
+import pickle
+
+from lib.helpers import *
+from lib.models import *
+from lib.icc import *
+
+```
+
+```{python}
+df1 = load_query_avg_data_exp1() # see data_helpers.py
+df1 = df1[~df1.querytype.str.contains('or')]
+# df1 = df1[df1["condition"]!=2] # filter out "warm/snowy" as per paper
+df1.head()
+```
+
+```{python}
+df2 = load_query_avg_data_exp2() # see data_helpers.py
+df2 = df2[df2["condition"]!=2] # filter out "warm/snowy" as per paper
+df2.head()
+```
+
+```{python}
+fits = dict()
+fits["exp1"] = dict()
+fits["exp2"] = dict()
+
+fits["exp1"]["Relative Freq."] = pickle.load(open("local/exp1/az_data_rf.p", "rb"))
+fits["exp1"]["Bayesian Sampler simple"] = pickle.load(open("local/exp1/az_data_bs_simple.p", "rb"))
+fits["exp1"]["Bayesian Sampler complex"] = pickle.load(open("local/exp1/az_data_bs.p", "rb"))
+fits["exp1"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp1/az_data_bs_mlm_simple.p", "rb"))
+fits["exp1"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp1/az_data_bs_mlm.p", "rb"))
+fits["exp1"]["PT+N complex"] = pickle.load(open("local/exp1/az_data_ptn.p", "rb"))
+fits["exp1"]["PT+N simple"] = pickle.load(open("local/exp1/az_data_ptn_simple.p", "rb"))
+fits["exp1"]["PT+N complex hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm.p", "rb"))
+fits["exp1"]["PT+N simple hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm_simple.p", "rb"))
+fits["exp1"]["Unrestricted BS hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm_simplecond.p", "rb"))
+
+fits["exp2"]["Relative Freq."] = pickle.load(open("local/exp2/az_data_rf.p", "rb"))
+fits["exp2"]["Bayesian Sampler simple"] = pickle.load(open("local/exp2/az_data_bs_simple.p", "rb"))
+fits["exp2"]["Bayesian Sampler complex"] = pickle.load(open("local/exp2/az_data_bs.p", "rb"))
+fits["exp2"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp2/az_data_bs_mlm_simple.p", "rb"))
+fits["exp2"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp2/az_data_bs_mlm.p", "rb"))
+fits["exp2"]["PT+N complex"] = pickle.load(open("local/exp2/az_data_ptn.p", "rb"))
+fits["exp2"]["PT+N simple"] = pickle.load(open("local/exp2/az_data_ptn_simple.p", "rb"))
+fits["exp2"]["PT+N complex hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm.p", "rb"))
+fits["exp2"]["PT+N simple hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm_simple.p", "rb"))
+fits["exp2"]["Unrestricted BS hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm_simplecond.p", "rb"))
+
+loos = dict()
+loos["exp1"] = dict()
+loos["exp2"] = dict()
+
+loos["exp1"]["Relative Freq."] = pickle.load(open("local/exp1/loo_rf.p", "rb"))
+loos["exp1"]["Bayesian Sampler simple"] = pickle.load(open("local/exp1/loo_bs_simple.p", "rb"))
+loos["exp1"]["Bayesian Sampler complex"] = pickle.load(open("local/exp1/loo_bs.p", "rb"))
+loos["exp1"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp1/loo_bs_mlm_simple.p", "rb"))
+loos["exp1"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp1/loo_bs_mlm.p", "rb"))
+loos["exp1"]["PT+N complex"] = pickle.load(open("local/exp1/loo_ptn.p", "rb"))
+loos["exp1"]["PT+N simple"] = pickle.load(open("local/exp1/loo_ptn_simple.p", "rb"))
+loos["exp1"]["PT+N complex hier."] = pickle.load(open("local/exp1/loo_ptn_mlm.p", "rb"))
+loos["exp1"]["PT+N simple hier."] = pickle.load(open("local/exp1/loo_ptn_mlm_simple.p", "rb"))
+loos["exp1"]["Unrestricted BS hier."] = pickle.load(open("local/exp1/loo_ptn_mlm_simplecond.p", "rb"))
+
+loos["exp2"]["Relative Freq."] = pickle.load(open("local/exp2/loo_rf.p", "rb"))
+loos["exp2"]["Bayesian Sampler simple"] = pickle.load(open("local/exp2/loo_bs_simple.p", "rb"))
+loos["exp2"]["Bayesian Sampler complex"] = pickle.load(open("local/exp2/loo_bs.p", "rb"))
+loos["exp2"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp2/loo_bs_mlm_simple.p", "rb"))
+loos["exp2"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp2/loo_bs_mlm.p", "rb"))
+loos["exp2"]["PT+N complex"] = pickle.load(open("local/exp2/loo_ptn.p", "rb"))
+loos["exp2"]["PT+N simple"] = pickle.load(open("local/exp2/loo_ptn_simple.p", "rb"))
+loos["exp2"]["PT+N complex hier."] = pickle.load(open("local/exp2/loo_ptn_mlm.p", "rb"))
+loos["exp2"]["PT+N simple hier."] = pickle.load(open("local/exp2/loo_ptn_mlm_simple.p", "rb"))
+loos["exp2"]["Unrestricted BS hier."] = pickle.load(open("local/exp2/loo_ptn_mlm_simplecond.p", "rb"))
+```
+
+```{python}
+exp1_model_comparison = compare(loos["exp1"], method="BB-pseudo-BMA")
+exp2_model_comparison = compare(loos["exp2"], method="BB-pseudo-BMA")
+
+exp1_model_comparison = exp1_model_comparison >> s.mutate(Experiment = "Exp. 1", model = exp1_model_comparison.index)
+exp2_model_comparison = exp2_model_comparison >> s.mutate(Experiment = "Exp. 2", model = exp2_model_comparison.index)
+
+model_comparison = exp1_model_comparison.append(exp2_model_comparison)
+```
+
+```{r}
+py$model_comparison %>% 
+  filter(model!="Relative Freq.") %>% 
+  mutate(ul=d_loo + dse*2, ll = d_loo - dse*2) %>% 
+  ggplot(aes(y=reorder(model,-d_loo), x = d_loo, xmin=ll, xmax=ul)) +
+  geom_vline(xintercept=0, linetype="dashed", color="grey") +
+  geom_point(size=2) +
+  geom_errorbarh(height=.01, size=.5) +
+  facet_wrap(~Experiment, scales="free_x") +
+  labs(x = TeX("$\\widehat{elpd}_{LOO}$ difference"), y = "Model") +
+  theme_bw() +
+  theme(panel.grid=element_blank())
+```
+
+```{python}
+model1 = fits["exp1"]["Unrestricted BS hier."]
+model1.posterior["d_prime_pop"] = model1.posterior.d_base_pop + np.exp(model1.posterior.d_delta_pop)
+post1 = posterior_to_df_mlm(model1, ["k"], ["d_subj", "d_prime_subj"])
+
+model2 = fits["exp2"]["Unrestricted BS hier."]
+model2.posterior["d_prime_pop"] = model2.posterior.d_base_pop + np.exp(model2.posterior.d_delta_pop)
+post2 = posterior_to_df_mlm(model2, ["k"], ["d_subj", "d_prime_subj"]) 
+
+param_posterior1 = model1.posterior.stack(draws=("chain", "draw"))[["d_base_pop", "d_prime_pop"]].to_dataframe()
+param_posterior2 = model2.posterior.stack(draws=("chain", "draw"))[["d_base_pop", "d_prime_pop"]].to_dataframe()
+
+param_posterior1 = param_posterior1 >> s.mutate(Experiment = "Exp. 1")
+param_posterior2 = param_posterior2 >> s.mutate(Experiment = "Exp. 2")
+
+param_posterior = param_posterior1.append(param_posterior2)
+```
+
+```{r}
+plt_forest_exp1 <- py$post1 %>% 
+  gather(var, val, d_subj, d_prime_subj) %>% 
+    group_by(ID, var) %>% 
+    summarize(
+        M = mean(val),
+        ll = quantile(val, .025),
+        ul = quantile(val, .975),
+    ) %>% 
+  mutate(var = if_else(var=="d_subj", "d", "d'")) %>% 
+  ggplot(aes(x=reorder(ID,M), y = M, ymin=ll, ymax=ul, color=var)) +
+  geom_pointrange(position=position_dodge(width=.5), size=.25) +
+  labs(title="Exp. 1", color="Variable", x = "Participant", y = "Estimate") +
+  theme_bw() +
+  theme(
+      panel.grid = element_blank(), 
+      legend.position="bottom", 
+      axis.text.x = element_text(angle=90, hjust=1, vjust=.5, size=5)
+      )
+
+plt_forest_exp2 <- py$post2 %>% 
+  gather(var, val, d_subj, d_prime_subj) %>% 
+    group_by(ID, var) %>% 
+    summarize(
+        M = mean(val),
+        ll = quantile(val, .025),
+        ul = quantile(val, .975),
+    ) %>% 
+  mutate(var = if_else(var=="d_subj", "d", "d'")) %>% 
+  ggplot(aes(x=reorder(ID,M), y = M, ymin=ll, ymax=ul, color=var)) +
+  geom_pointrange(position=position_dodge(width=.5),size=.25) +
+  labs(title="Exp. 2", color="Variable", x = "Participant", y = "Estimate") +
+  theme_bw() +
+  theme(
+      panel.grid = element_blank(), 
+      legend.position="bottom", 
+      axis.text.x = element_text(angle=90, hjust=1, vjust=.5, size=5)
+      )
+
+library(patchwork)
+
+(plt_forest_exp1 + coord_fixed(ratio=59/.5)) + 
+  (plt_forest_exp2 + coord_fixed(ratio=59/.5)) + 
+  plot_layout(guides="collect") & theme(legend.position = 'bottom')
+```
+
+```{python}
+preds1 = fits["exp1"]["Unrestricted BS hier."].posterior_predictive.mean(dim=['chain', 'draw']).yhat.to_numpy()
+preds2 = fits["exp2"]["Unrestricted BS hier."].posterior_predictive.mean(dim=['chain', 'draw']).yhat.to_numpy()
+```
+
+```{r}
+plt_pp <- py$df1 %>% 
+  mutate(pred = py$preds1, Experiment = "Exp. 1") %>% 
+  bind_rows(
+    py$df2 %>% 
+    mutate(pred = py$preds2, Experiment = "Exp. 2")
+  ) %>% 
+  ggplot(aes(x=pred, y= estimate)) +
+  geom_point(alpha=.25) +
+  facet_wrap(~Experiment) +
+  theme_bw() +
+  theme(aspect.ratio=1) +
+  theme(panel.grid=element_blank())
+
+plt_pp
+```
+
+```{r}
+
+## calcualte inequalities
+
+plt_ineq_exp2 <- py$df2 %>% 
+  mutate(pred = py$preds2) %>% 
+  mutate(condition = if_else(condition==0, "{cloudy, windy}", "{cold, rainy}" )) %>% 
+  gather(var, val, estimate, pred) %>% 
+  select(-querydetail) %>% 
+  pivot_wider(names_from = querytype, values_from=val) %>% 
+  mutate(
+    z1 = A + B - AandB - AorB,
+    z2 = A + notAandB - B - AandnotB,
+    z3 = A + notAandB - AorB,
+    z4 = B + AandnotB - AorB,
+    z5 = AandnotB + AandB - A,
+    z6 = notAandB + AandB - B,
+    z7 = AandnotB + notAandB + AandB - AorB,
+    z8 = AandnotB + notAandB + 2*AorB - A -B,
+    z9 = AgB*B - BgA*A,
+    z10 = AgB*B + AgnotB*notB - A,
+    z11 = BgA*A + BgnotA*notA - B,
+    z12 = BgA*A + AgnotB*notB - A,
+    z13 = AgB*B + BgnotA*notA - B,
+    z14 = AgnotB*notB + B - BgnotA*notA - A,
+    z15 = AandB - AgB*B,
+    z16 = AandB - BgA*A,
+    z17 = AandB - A + AgnotB*notB,
+    z18 = AandB - B + BgnotA*notA
+  ) %>% 
+  select(ID, var, condition, starts_with("z")) %>% 
+  gather(inequality, val, -ID,-var,-condition) %>% 
+  # mutate(inequality = as.numeric(gsub("z","", inequality))) %>% 
+  mutate(inequality = ordered(inequality, levels = paste0("z",1:18))) %>% 
+  group_by(var, inequality, condition) %>% 
+  summarize(
+    M = mean(val),
+    SD = sd(val),
+    se = sd(val)/sqrt(n())
+  ) %>% 
+  ggplot(aes(x=inequality, y = M, ymin = M-2*se, ymax=M+2*se, color=var)) +
+  geom_pointrange(size=.25) +
+  geom_hline(yintercept=0, linetype="dashed") +
+  facet_wrap(~condition, ncol=1) +
+  theme_bw() +
+  theme(panel.grid=element_blank())
+ 
+```
+
+```{python}
+df1_all = load_query_avg_data_exp1()
+model1_all = pickle.load(open("local/exp1/az_data_ptn_mlm_simplecond-all.p", "rb"))
+preds1_all = model1_all.posterior_predictive.mean(dim=['chain', 'draw']).yhat.to_numpy()
+```
+
+```{r}
+plt_ineq_exp1 <- py$df1_all %>% 
+  mutate(pred = py$preds1_all) %>% 
+  gather(var, val, estimate, pred) %>% 
+  select(-querydetail) %>% 
+  pivot_wider(names_from = querytype, values_from=val) %>% 
+  mutate(condition = if_else(condition==0, "{icy, frosty}", "{normal, typical}" )) %>% 
+  mutate(
+    z1 = A + B - AandB - AorB,
+    z2 = A + notAandB - B - AandnotB,
+    z3 = A + notAandB - AorB,
+    z4 = B + AandnotB - AorB,
+    z5 = AandnotB + AandB - A,
+    z6 = notAandB + AandB - B,
+    z7 = AandnotB + notAandB + AandB - AorB,
+    z8 = AandnotB + notAandB + 2*AorB - A -B,
+    z9 = AgB*B - BgA*A,
+    z10 = AgB*B + AgnotB*notB - A,
+    z11 = BgA*A + BgnotA*notA - B,
+    z12 = BgA*A + AgnotB*notB - A,
+    z13 = AgB*B + BgnotA*notA - B,
+    z14 = AgnotB*notB + B - BgnotA*notA - A,
+    z15 = AandB - AgB*B,
+    z16 = AandB - BgA*A,
+    z17 = AandB - A + AgnotB*notB,
+    z18 = AandB - B + BgnotA*notA
+  ) %>% 
+  select(ID, var, condition, starts_with("z")) %>% 
+  gather(inequality, val, -ID,-var,-condition) %>% 
+  # filter(inequality %in% paste0("z",10:13)) %>% 
+  # mutate(inequality = as.numeric(gsub("z","", inequality))) %>% 
+  mutate(inequality = ordered(inequality, levels = paste0("z",1:18))) %>% 
+  group_by(var, inequality, condition) %>% 
+  summarize(
+    M = mean(val),
+    SD = sd(val),
+    se = sd(val)/sqrt(n())
+  ) %>% 
+  ggplot(aes(x=inequality, y = M, ymin = M-2*se, ymax=M+2*se, color=var)) +
+  geom_pointrange(size=.25) +
+  geom_hline(yintercept=0, linetype="dashed") +
+  facet_wrap(~condition, ncol=1) +
+  theme_bw() +
+  theme(panel.grid=element_blank())
+ 
+```
+
+```{r}
+# In Experiment 1, like participants' responses,  the model's estimates are very slightly positive for {icy, frosty} and very slightly negative for {normal, typical}. This pattern replicates the qualitative pattern reported by Zhu and colleagues.
+plt_ineq_exp1 + labs(title="Exp. 1") + 
+  plt_ineq_exp2 + labs(title="Exp. 2") + 
+  plot_layout(guides="collect") & theme(legend.position="bottom") & labs(color="", y = "Estimate", x = "Identity")
+```
+
+
+```{python}
+# az_ptn_exp1 = pickle.load(open("local/az-ptn_simplecond_mlm_trial_level_disc-exp1svi.p", "rb"))
+# az_ptn_exp2 = pickle.load(open("local/az-ptn_simplecond_mlm_trial_level_disc-exp2svi.p", "rb"))
+# 
+# # posterior_ptn1 = posterior_to_df_mlm(
+# #     az_ptn_exp1, 
+# #     ["d_base_pop","d_delta_pop","d_base_sd","d_delta_sd"],
+# #     ["d_subj", "d_prime_subj", "k"]
+# # )
+# # 
+# posterior_ptn2 = posterior_to_df_mlm(
+#     az_ptn_exp2,
+#     ["d_base_pop","d_delta_pop","d_base_sd","d_delta_sd"],
+#     ["d_base_r", "d_delta_r", "d_subj", "d_prime_subj", "k"]
+# )
+
+posterior_ptn1 = pickle.load(open("local/posterior_ptn1.p", "rb"))
+posterior_ptn2 = pickle.load(open("local/posterior_ptn2.p", "rb"))
+```
+
+```{r}
+plt_dk_ptn1 <- py$posterior_ptn1 %>% 
+    group_by(ID) %>% 
+    summarize(
+        k_est = mean(k),
+        k_ll = quantile(k, .05),
+        k_ul = quantile(k, .95),
+        d_est = mean(d_subj),
+        d_ll = quantile(d_subj, .05),
+        d_ul = quantile(d_subj, .95)
+    ) %>% 
+#     s.filter(_.k_est < 50.) >>
+    filter(ID!=51, ID!=45, ID!=29, ID!=28) %>% 
+    ggplot(aes(x=k_est, y=d_est)) +
+    geom_point() +
+    geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
+    geom_errorbarh(aes(xmin=k_ll, xmax=k_ul), height=0, alpha=.25) +
+    # geom_smooth(method="lm") +
+    labs(y="d", x="k", title="Exp. 1") +
+    theme_bw() +
+    theme(aspect.ratio=1) +
+    theme(panel.grid = element_blank())
+
+plt_dk_ptn2 <- py$posterior_ptn2 %>% 
+    group_by(ID) %>% 
+    summarize(
+        k_est = mean(k),
+        k_ll = quantile(k, .05),
+        k_ul = quantile(k, .95),
+        d_est = mean(d_subj),
+        d_ll = quantile(d_subj, .05),
+        d_ul = quantile(d_subj, .95)
+    ) %>% 
+#     s.filter(_.k_est < 50.) >>
+    # filter(ID!=51, ID!=45, ID!=29, ID!=28) %>% 
+    ggplot(aes(x=k_est, y=d_est)) +
+    geom_point() +
+    geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
+    geom_errorbarh(aes(xmin=k_ll, xmax=k_ul), height=0, alpha=.25) +
+    # geom_smooth(method="lm") +
+    labs(y="d", x="k", title="Exp. 2") +
+    theme_bw() +
+    theme(aspect.ratio=1) +
+    theme(panel.grid = element_blank())
+
+plt_dprimek_ptn1 <- py$posterior_ptn1 %>% 
+    group_by(ID) %>% 
+    summarize(
+        k_est = mean(k),
+        k_ll = quantile(k, .05),
+        k_ul = quantile(k, .95),
+        d_est = mean(d_prime_subj),
+        d_ll = quantile(d_prime_subj, .05),
+        d_ul = quantile(d_prime_subj, .95)
+    ) %>% 
+#     s.filter(_.k_est < 50.) >>
+    filter(ID!=51, ID!=45, ID!=29, ID!=28) %>% 
+    ggplot(aes(x=k_est, y=d_est)) +
+    geom_point() +
+    geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
+    geom_errorbarh(aes(xmin=k_ll, xmax=k_ul), height=0, alpha=.25) +
+    # geom_smooth(method="lm") +
+    labs(y="d'", x="k") +
+    theme_bw() +
+    theme(aspect.ratio=1) +
+    theme(panel.grid = element_blank())
+
+plt_dprimek_ptn2 <- py$posterior_ptn2 %>% 
+    group_by(ID) %>% 
+    summarize(
+        k_est = mean(k),
+        k_ll = quantile(k, .05),
+        k_ul = quantile(k, .95),
+        d_est = mean(d_prime_subj),
+        d_ll = quantile(d_prime_subj, .05),
+        d_ul = quantile(d_prime_subj, .95)
+    ) %>% 
+#     s.filter(_.k_est < 50.) >>
+    # filter(ID!=51, ID!=45, ID!=29, ID!=28) %>% 
+    ggplot(aes(x=k_est, y=d_est)) +
+    geom_point() +
+    geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
+    geom_errorbarh(aes(xmin=k_ll, xmax=k_ul), height=0, alpha=.25) +
+    # geom_smooth(method="lm") +
+    labs(y="d'", x="k") +
+    theme_bw() +
+    theme(aspect.ratio=1) +
+    theme(panel.grid = element_blank())
+```
+
+```{r}
+plt_dk_ptn1  + plt_dprimek_ptn1 + plt_dk_ptn2 + plt_dprimek_ptn2
+```
+
+
+
+```{r}
+plt_d_avgmodel <- py$param_posterior %>% 
+  mutate(
+    d = plogis(d_base_pop)/2,
+    d_prime = plogis(d_prime_pop)/2
+    ) %>% 
+  gather(Variable, val, d, d_prime) %>% 
+  mutate(Variable = if_else(Variable=="d", "d", "d'")) %>% 
+  ggplot(aes(x=val, fill=Variable, color=Variable)) +
+  geom_density(position="identity", alpha=.6) +
+  facet_wrap(~Experiment) +
+  xlim(0,.5) +
+  labs(title="Participant-level query-average model")
+
+plt_d_trialmodel <- py$posterior_ptn1 %>% 
+  mutate(Experiment = "Exp. 1") %>% 
+  bind_rows(
+    py$posterior_ptn2 %>% 
+      mutate(Experiment = "Exp. 2")
+  ) %>% 
+  filter(ID==0) %>% 
+  select(Experiment, draw, d_base_pop, d_base_sd, d_delta_pop, d_delta_sd) %>% 
+  mutate(
+    d = plogis(d_base_pop)/2,
+    d_prime = plogis(d_base_pop + exp(d_delta_pop))/2
+    ) %>% 
+  gather(Variable, val, d, d_prime) %>% 
+  mutate(Variable = if_else(Variable=="d", "d", "d'")) %>% 
+  ggplot(aes(x=val, fill=Variable, color=Variable)) +
+  geom_density(position="identity", alpha=.6) +
+  facet_wrap(~Experiment) +
+  xlim(0,.5) +
+  labs(title="Trial-level model")
+
+plt_d_avgmodel + plt_d_trialmodel + plot_layout(ncol=1, guides="collect") & labs(x="Estimate") & theme_bw() & theme(panel.grid=element_blank())
+```
