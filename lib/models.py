@@ -929,7 +929,72 @@ def ptn_simplecond_mlm_trial_level_disc(data, y=None):
         return(yhat)
     
     
-def ptn_simplecond_mlm_trial_level_disc2(data, y=None):
+# def ptn_simplecond_mlm_trial_level_disc2(data, y=None):
+    
+#     # parameterized in terms of d and d' for comparison of model fit
+
+#     # Data processing
+#     trial, subj, cond = data["trial"], data["subj"], data["cond"]
+#     n_Ps, n_conds = np.unique(subj).shape[0], np.unique(cond).shape[0] 
+    
+#     # setup "design matrix" (of sorts)
+#     X_num, X_denom = jnp.stack([num_vecs[i] for i in trial]), jnp.stack([denom_vecs[i] for i in trial])
+#     conjdisj, not_conjdisj = jnp.array([is_conjdisj(i) for i in trial]), abs(1-jnp.array([is_conjdisj(i) for i in trial]))
+
+#     # population level parameters/priors
+# #     k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
+#     rnd_policy = numpyro.sample("rnd_policy", dist.Dirichlet(jnp.ones(5)))
+    
+#     d_base_pop = numpyro.sample("d_base_pop", dist.Normal(-1.0, 1.0))
+#     d_delta_pop = numpyro.sample("d_delta_pop", dist.Normal(0, .5)) # bias toward lower values for non conj/disj trials
+#     d_base_sd = numpyro.sample("d_base_sd", dist.LogNormal(-1., 1.)) # was halfcauchy(1)
+#     d_delta_sd = numpyro.sample("d_delta_sd", dist.LogNormal(-1., 1.)) # approx uniform altogether we hope
+
+#     # subject-level parameters/priors 
+#     with numpyro.plate("subj", n_Ps):
+#         d_bases = numpyro.sample("d_base_r", dist.Normal(0, 1))
+#         d_deltas = numpyro.sample("d_delta_r", dist.Normal(0, 1))
+#         ks = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
+        
+#     # subject/query-level parameters/priors
+#     with numpyro.plate("cond", n_Ps*n_conds):
+#         thetas = numpyro.sample("theta", dist.Dirichlet(jnp.ones(4)))
+    
+#     d_lin = (d_base_pop + 
+#              d_bases[subj]*d_base_sd + 
+#              jnp.exp(d_delta_pop + d_delta_sd*d_deltas[subj])*conjdisj
+#             )  # exp() constrains d_delta to be positive
+    
+#     d = sigmoid(d_lin)/2.0
+    
+#     numpyro.deterministic("d_subj", sigmoid(d_base_pop + d_bases*d_base_sd)/2.)
+#     numpyro.deterministic("d_prime_subj", 
+#                           sigmoid(d_base_pop + 
+#                                   d_bases*d_base_sd + 
+#                                   jnp.exp(d_delta_pop + d_deltas*d_delta_sd)
+#                                  )/2.
+#                          )
+    
+#     theta_ind = ((subj*n_conds)+cond)
+#     theta = thetas[theta_ind,:]
+        
+#     p_bs = prob_judge_BS_d(theta, X_num, X_denom, d)
+#     k = ks[subj] # fixed/updated 8/26/22, 6:17 PM
+    
+#     resp_probs = (
+#         1./21.*rnd_policy[0] +
+#         lbeta_cat_probs(p_bs, k, responses_5)*rnd_policy[1] + 
+#         lbeta_cat_probs(p_bs, k, responses_10)*rnd_policy[2] +
+#         lbeta_cat_probs(p_bs, k, responses_25)*rnd_policy[3] +
+#         lbeta_cat_probs(p_bs, k, responses_50)*rnd_policy[4]
+#     )
+
+#     # Likelihood
+#     with numpyro.plate("data", len(trial)):
+#         yhat = numpyro.sample("yhat", dist.Categorical(probs=resp_probs), obs=y) # rounded
+#         return(yhat)
+
+def ptn_simplecond_mlm_trial_level_disc_kconjdisj(data, y=None):
     
     # parameterized in terms of d and d' for comparison of model fit
 
@@ -943,7 +1008,7 @@ def ptn_simplecond_mlm_trial_level_disc2(data, y=None):
 
     # population level parameters/priors
 #     k = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
-    rnd_policy = numpyro.sample("rnd_policy", dist.Dirichlet(jnp.ones(5)))
+    rnd_policy = numpyro.sample("rnd_policy", dist.Dirichlet(jnp.ones(3)))
     
     d_base_pop = numpyro.sample("d_base_pop", dist.Normal(-1.0, 1.0))
     d_delta_pop = numpyro.sample("d_delta_pop", dist.Normal(0, .5)) # bias toward lower values for non conj/disj trials
@@ -955,6 +1020,7 @@ def ptn_simplecond_mlm_trial_level_disc2(data, y=None):
         d_bases = numpyro.sample("d_base_r", dist.Normal(0, 1))
         d_deltas = numpyro.sample("d_delta_r", dist.Normal(0, 1))
         ks = numpyro.sample("k", dist.HalfCauchy(20)) # noise parameter
+        k_primes = numpyro.sample("k_prime", dist.HalfCauchy(20)) # noise parameter
         
     # subject/query-level parameters/priors
     with numpyro.plate("cond", n_Ps*n_conds):
@@ -979,20 +1045,19 @@ def ptn_simplecond_mlm_trial_level_disc2(data, y=None):
     theta = thetas[theta_ind,:]
         
     p_bs = prob_judge_BS_d(theta, X_num, X_denom, d)
-    k = ks[subj] # fixed/updated 8/26/22, 6:17 PM
+    k = ks[subj]*not_conjdisj + k_primes[subj]*conjdisj # vary k for conjdisj trials
     
     resp_probs = (
         1./21.*rnd_policy[0] +
         lbeta_cat_probs(p_bs, k, responses_5)*rnd_policy[1] + 
-        lbeta_cat_probs(p_bs, k, responses_10)*rnd_policy[2] +
-        lbeta_cat_probs(p_bs, k, responses_25)*rnd_policy[3] +
-        lbeta_cat_probs(p_bs, k, responses_50)*rnd_policy[4]
+        lbeta_cat_probs(p_bs, k, responses_10)*rnd_policy[2]
     )
 
     # Likelihood
     with numpyro.plate("data", len(trial)):
         yhat = numpyro.sample("yhat", dist.Categorical(probs=resp_probs), obs=y) # rounded
         return(yhat)
+    
 
 ## =====================================
 ## Hierarchical Mixture Models
