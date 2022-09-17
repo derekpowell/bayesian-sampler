@@ -320,7 +320,9 @@ plt_ineq_exp1 <- py$df1_all %>%
 # In Experiment 1, like participants' responses,  the model's estimates are very slightly positive for {icy, frosty} and very slightly negative for {normal, typical}. This pattern replicates the qualitative pattern reported by Zhu and colleagues.
 plt_ineq_exp1 + labs(title="Exp. 1") + 
   plt_ineq_exp2 + labs(title="Exp. 2") + 
-  plot_layout(guides="collect") & theme(legend.position="bottom") & labs(color="", y = "Estimate", x = "Identity")
+  plot_layout(guides="collect") & 
+  theme(legend.position="bottom", axis.text.x = element_text(angle=90, hjust=1, vjust=.5)) & 
+  labs(color="", y = "Estimate", x = "Identity")
 ```
 
 
@@ -362,7 +364,7 @@ plt_dk_ptn1 <- py$posterior_ptn1 %>%
     geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
     geom_errorbarh(aes(xmin=k_ll, xmax=k_ul), height=0, alpha=.25) +
     # geom_smooth(method="lm") +
-    labs(y="d", x="k", title="Exp. 1") +
+    labs(y="d", x="N", title="Exp. 1") +
     theme_bw() +
     theme(aspect.ratio=1) +
     theme(panel.grid = element_blank())
@@ -384,7 +386,7 @@ plt_dk_ptn2 <- py$posterior_ptn2 %>%
     geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
     geom_errorbarh(aes(xmin=k_ll, xmax=k_ul), height=0, alpha=.25) +
     # geom_smooth(method="lm") +
-    labs(y="d", x="k", title="Exp. 2") +
+    labs(y="d", x="N", title="Exp. 2") +
     theme_bw() +
     theme(aspect.ratio=1) +
     theme(panel.grid = element_blank())
@@ -406,7 +408,7 @@ plt_dprimek_ptn1 <- py$posterior_ptn1 %>%
     geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
     geom_errorbarh(aes(xmin=k_ll, xmax=k_ul), height=0, alpha=.25) +
     # geom_smooth(method="lm") +
-    labs(y="d'", x="k") +
+    labs(y="d'", x="N") +
     theme_bw() +
     theme(aspect.ratio=1) +
     theme(panel.grid = element_blank())
@@ -428,7 +430,7 @@ plt_dprimek_ptn2 <- py$posterior_ptn2 %>%
     geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
     geom_errorbarh(aes(xmin=k_ll, xmax=k_ul), height=0, alpha=.25) +
     # geom_smooth(method="lm") +
-    labs(y="d'", x="k") +
+    labs(y="d'", x="N") +
     theme_bw() +
     theme(aspect.ratio=1) +
     theme(panel.grid = element_blank())
