@@ -1,0 +1,78 @@
+\begin{figure}
+  \begin{minipage}{.5\textwidth}
+    
+\begin{tikzpicture}
+      % Define nodes
+      \node[det] (theta) {$\vec{p_{ijk}}$};
+      \node[det, left=.75cm of theta] (mu) {${\mu_{ijk}}$};
+      \node[obs, below=1cm of theta]  (y) {$y_{ijk}$};
+      \node[obs, below=1cm of mu]  (x) {$x_{ijk}$};
+      \node[det, above=of theta, xshift=-1cm]  (N_prime) {$N_j'$};
+      \node[det, left=.75cm of N_prime]  (N) {$N_j$};
+      \node[latent, above=of N]  (eta) {$\eta_j$};
+      \node[latent, above=of N_prime, xshift=.5cm]  (delta_eta) {$\Delta\eta_j$};
+      \node[latent, right=.75cm of N_prime]  (beta) {$\beta_j$};
+      \node[latent, right=of beta, yshift=-.5cm]  (beta_pop) {$\overline{\beta}$};
+      \node[latent, right=of beta, yshift=.5cm]  (beta_sd) {$\sigma_{\beta}$};
+      \node[latent, below=1cm of mu, xshift=-1.1cm]            (p) {$\vec{\theta_{jk}}$};
+      \node[latent, above=of eta, xshift=-.5cm]  (eta_pop) {$\overline{\eta}$};
+      \node[latent, above=of delta_eta, xshift=-.5cm]  (delta_eta_pop) {$\overline{\Delta\eta}$};
+      \node[latent, above=of eta, xshift=.5cm]  (sigma_eta) {$\sigma_{\eta}$};
+      \node[latent, above=of delta_eta, xshift=.5cm]  (sigma_delta_eta) {$\sigma_{\Delta\eta}$};
+      \node[latent, right=1.5cm of y]  (phi) {$\phi$};
+      % Connect the nodes
+      \edge {theta} {y} ; %
+      \edge {x,p} {mu}
+      \edge {N, N_prime, beta, mu, phi} {theta}
+      \edge {eta} {N, N_prime}
+      \edge {delta_eta} {N_prime}
+      \edge {eta_pop} {eta}
+      \edge {delta_eta_pop} {delta_eta}
+      \edge {sigma_eta} {eta}
+      \edge {sigma_delta_eta} {delta_eta}
+      \edge {beta_pop, beta_sd} {beta}
+    
+      % Plates
+      {
+        \tikzset{plate caption/.append style={below=15pt of #1.south east}};
+        \tikzstyle{plateIJK} = [align=center];
+        \plate[inner sep=0.25cm, xshift=.2cm] {plateIJK} {(mu)(y)(x)} {$i$} ;
+     }
+      {
+        \tikzset{plate caption/.append style={above right=0pt of #1.north east}};
+        \plate[inner sep=0.25cm, xshift=0cm, yshift=-.12cm] {plateJ} {(mu)(y)(p)(N)(N_prime)(eta)(delta_eta)(beta)} {$j$} ;
+      }
+      {
+        \tikzset{plate caption/.append style={above right=0pt and 0pt of #1.north west}};
+        \plate[inner sep=0.25cm, xshift=.125cm] {plateIJ} {(p)(mu)(y)(x)} {$k$};
+      }
+
+
+\end{tikzpicture}
+
+  \end{minipage}%
+  \begin{minipage}{.5\textwidth}
+    \centering
+    $
+\begin{aligned}[c]
+  y_{ij} &\sim Categorical(\theta) \\
+  \overrightarrow{\theta_{ijk}} &= Z_{BS}(\mu_{ijk}, N_j, N'_j, \beta_j, \phi) \\
+  \mu_{ijk} &= f_0(\overrightarrow{\theta_{jk}}, x_{ijk})  \\
+  N_j' &= 1 + exp(\eta_j) \\
+  N_j &= 1 + exp(\eta_j) + \exp(\Delta\eta_j) \\
+  log(\beta_j) &\sim Normal(\overline{\beta}, \sigma_{\beta}) \\
+  \eta_j &\sim Normal(\overline{\eta}, \sigma_{\eta}) \\ 
+  \Delta\eta_j &\sim Normal(\overline{\Delta\eta}, \sigma_{\Delta\eta}) \\
+  \overline{\eta'} &\sim Normal(1, 1) \\
+  \overline{\Delta\eta} &\sim Normal(0, .1) \\
+  \overline{\beta} &\sim Normal(-.5, .4) \\
+  log(\sigma_{\eta}) &\sim Normal(-.5, .5) \\
+  log(\sigma_{\Delta\eta}) &\sim Normal(-.5, -.5) \\
+  log(\sigma_{\beta}) &\sim Normal(-1, .5) \\
+  \overrightarrow{p_i} &\sim Dirichlet(\overrightarrow{1}) \\
+  \overrightarrow{\phi} &\sim Dirichlet(\overrightarrow{1}) \\
+\end{aligned}
+$
+  \end{minipage}
+  \caption{Hierarchical complex trial-level Bayesian Sampler model diagram and formula specifications. $Z_{BS}$ and $f_{0}$ are functions that compute the probability of each categorical response and the expected proportion of mental samples given underlying mental probabilities before Bayesian adjustment. See Appendix for further descriptions of these details.}
+\end{figure}
