@@ -1,6 +1,6 @@
 # Comparing probabilistic accounts of probability judgments
 
-Pre-print: https://psyarxiv.com/2bk6f/
+Pre-print: https://psyarxiv.com/2bk6f/ 
 OSF: https://osf.io/bpkjf/
 
 A Bayesian re-analyses of data from:
