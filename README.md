@@ -1,6 +1,6 @@
 # Comparing probabilistic accounts of probability judgments
 
-Pre-print: https://psyarxiv.com/2bk6f/ 
+Pre-print: https://psyarxiv.com/2bk6f/  
 OSF: https://osf.io/bpkjf/
 
 A Bayesian re-analyses of data from:
@@ -32,6 +32,6 @@ A Bayesian re-analyses of data from:
 ### Reproducibility
 
 1. From https://osf.io/mgcxj/files/ download original data files as .zip and extract into `osfstorage-archive` folder in repo directory.
-2. Download saved SVI results for trial-level models from this project's OSF repository and place in `local/` directory.
+2. Download saved SVI results for trial-level models from this project's OSF repository and place/unzip in `local/` directory.
 3. Use `environment.yml` to create Conda environment.
 4. Run fitting notebooks first, then model comparison notebook, and then finally can knit Rmarkdown.
