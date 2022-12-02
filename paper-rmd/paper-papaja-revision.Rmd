@@ -45,8 +45,9 @@ biblio-style      : "apa"
 documentclass     : "apa6"
 classoption       : "man"
 output:
-  papaja::apa6_pdf
-
+  papaja::apa6_word
+keep_tex: yes
+always_allow_html: true
 header-includes:
   - \usepackage{tikz}
   - \usetikzlibrary{bayesnet}
