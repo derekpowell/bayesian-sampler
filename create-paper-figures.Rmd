@@ -5,6 +5,7 @@ output: html_notebook
 
 ```{r}
 library(tidyverse)
+library(patchwork)
 library(latex2exp)
 library(reticulate)
 use_condaenv("bsampler")
@@ -55,61 +56,66 @@ fits = dict()
 fits["exp1"] = dict()
 fits["exp2"] = dict()
 
-fits["exp1"]["Relative Freq."] = pickle.load(open("local/exp1/az_data_rf.p", "rb"))
-fits["exp1"]["Bayesian Sampler simple"] = pickle.load(open("local/exp1/az_data_bs_simple.p", "rb"))
-fits["exp1"]["Bayesian Sampler complex"] = pickle.load(open("local/exp1/az_data_bs.p", "rb"))
-fits["exp1"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp1/az_data_bs_mlm_simple.p", "rb"))
-fits["exp1"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp1/az_data_bs_mlm.p", "rb"))
-fits["exp1"]["PT+N complex"] = pickle.load(open("local/exp1/az_data_ptn.p", "rb"))
-fits["exp1"]["PT+N simple"] = pickle.load(open("local/exp1/az_data_ptn_simple.p", "rb"))
-fits["exp1"]["PT+N complex hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm.p", "rb"))
-fits["exp1"]["PT+N simple hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm_simple.p", "rb"))
-fits["exp1"]["Unrestricted BS hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm_simplecond.p", "rb"))
+# fits["exp1"]["Relative Freq."] = pickle.load(open("local/exp1/az_data_rf.p", "rb"))
+# fits["exp1"]["Bayesian Sampler simple"] = pickle.load(open("local/exp1/az_data_bs_simple.p", "rb"))
+# fits["exp1"]["Bayesian Sampler complex"] = pickle.load(open("local/exp1/az_data_bs.p", "rb"))
+# fits["exp1"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp1/az_data_bs_mlm_simple.p", "rb"))
+# fits["exp1"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp1/az_data_bs_mlm.p", "rb"))
+# fits["exp1"]["PT+N complex"] = pickle.load(open("local/exp1/az_data_ptn.p", "rb"))
+# fits["exp1"]["PT+N simple"] = pickle.load(open("local/exp1/az_data_ptn_simple.p", "rb"))
+# fits["exp1"]["PT+N complex hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm.p", "rb"))
+# fits["exp1"]["PT+N simple hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm_simple.p", "rb"))
+# fits["exp1"]["Unrestricted BS hier."] = pickle.load(open("local/exp1/az_data_ptn_mlm_simplecond.p", "rb"))
+fits["exp1"]["Unrestricted BS hier."] = az.from_netcdf("local/exp1/az_data_ptn_mlm_simplecond.nc")
 
-fits["exp2"]["Relative Freq."] = pickle.load(open("local/exp2/az_data_rf.p", "rb"))
-fits["exp2"]["Bayesian Sampler simple"] = pickle.load(open("local/exp2/az_data_bs_simple.p", "rb"))
-fits["exp2"]["Bayesian Sampler complex"] = pickle.load(open("local/exp2/az_data_bs.p", "rb"))
-fits["exp2"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp2/az_data_bs_mlm_simple.p", "rb"))
-fits["exp2"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp2/az_data_bs_mlm.p", "rb"))
-fits["exp2"]["PT+N complex"] = pickle.load(open("local/exp2/az_data_ptn.p", "rb"))
-fits["exp2"]["PT+N simple"] = pickle.load(open("local/exp2/az_data_ptn_simple.p", "rb"))
-fits["exp2"]["PT+N complex hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm.p", "rb"))
-fits["exp2"]["PT+N simple hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm_simple.p", "rb"))
-fits["exp2"]["Unrestricted BS hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm_simplecond.p", "rb"))
+# fits["exp2"]["Relative Freq."] = pickle.load(open("local/exp2/az_data_rf.p", "rb"))
+# fits["exp2"]["Bayesian Sampler simple"] = pickle.load(open("local/exp2/az_data_bs_simple.p", "rb"))
+# fits["exp2"]["Bayesian Sampler complex"] = pickle.load(open("local/exp2/az_data_bs.p", "rb"))
+# fits["exp2"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp2/az_data_bs_mlm_simple.p", "rb"))
+# fits["exp2"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp2/az_data_bs_mlm.p", "rb"))
+# fits["exp2"]["PT+N complex"] = pickle.load(open("local/exp2/az_data_ptn.p", "rb"))
+# fits["exp2"]["PT+N simple"] = pickle.load(open("local/exp2/az_data_ptn_simple.p", "rb"))
+# fits["exp2"]["PT+N complex hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm.p", "rb"))
+# fits["exp2"]["PT+N simple hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm_simple.p", "rb"))
+# fits["exp2"]["Unrestricted BS hier."] = pickle.load(open("local/exp2/az_data_ptn_mlm_simplecond.p", "rb"))
+fits["exp2"]["Unrestricted BS hier."] = az.from_netcdf("local/exp2/az_data_ptn_mlm_simplecond.nc")
 
-loos = dict()
-loos["exp1"] = dict()
-loos["exp2"] = dict()
-
-loos["exp1"]["Relative Freq."] = pickle.load(open("local/exp1/loo_rf.p", "rb"))
-loos["exp1"]["Bayesian Sampler simple"] = pickle.load(open("local/exp1/loo_bs_simple.p", "rb"))
-loos["exp1"]["Bayesian Sampler complex"] = pickle.load(open("local/exp1/loo_bs.p", "rb"))
-loos["exp1"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp1/loo_bs_mlm_simple.p", "rb"))
-loos["exp1"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp1/loo_bs_mlm.p", "rb"))
-loos["exp1"]["PT+N complex"] = pickle.load(open("local/exp1/loo_ptn.p", "rb"))
-loos["exp1"]["PT+N simple"] = pickle.load(open("local/exp1/loo_ptn_simple.p", "rb"))
-loos["exp1"]["PT+N complex hier."] = pickle.load(open("local/exp1/loo_ptn_mlm.p", "rb"))
-loos["exp1"]["PT+N simple hier."] = pickle.load(open("local/exp1/loo_ptn_mlm_simple.p", "rb"))
-loos["exp1"]["Unrestricted BS hier."] = pickle.load(open("local/exp1/loo_ptn_mlm_simplecond.p", "rb"))
-
-loos["exp2"]["Relative Freq."] = pickle.load(open("local/exp2/loo_rf.p", "rb"))
-loos["exp2"]["Bayesian Sampler simple"] = pickle.load(open("local/exp2/loo_bs_simple.p", "rb"))
-loos["exp2"]["Bayesian Sampler complex"] = pickle.load(open("local/exp2/loo_bs.p", "rb"))
-loos["exp2"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp2/loo_bs_mlm_simple.p", "rb"))
-loos["exp2"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp2/loo_bs_mlm.p", "rb"))
-loos["exp2"]["PT+N complex"] = pickle.load(open("local/exp2/loo_ptn.p", "rb"))
-loos["exp2"]["PT+N simple"] = pickle.load(open("local/exp2/loo_ptn_simple.p", "rb"))
-loos["exp2"]["PT+N complex hier."] = pickle.load(open("local/exp2/loo_ptn_mlm.p", "rb"))
-loos["exp2"]["PT+N simple hier."] = pickle.load(open("local/exp2/loo_ptn_mlm_simple.p", "rb"))
-loos["exp2"]["Unrestricted BS hier."] = pickle.load(open("local/exp2/loo_ptn_mlm_simplecond.p", "rb"))
+# loos = dict()
+# loos["exp1"] = dict()
+# loos["exp2"] = dict()
+# 
+# loos["exp1"]["Relative Freq."] = pickle.load(open("local/exp1/loo_rf.p", "rb"))
+# loos["exp1"]["Bayesian Sampler simple"] = pickle.load(open("local/exp1/loo_bs_simple.p", "rb"))
+# loos["exp1"]["Bayesian Sampler complex"] = pickle.load(open("local/exp1/loo_bs.p", "rb"))
+# loos["exp1"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp1/loo_bs_mlm_simple.p", "rb"))
+# loos["exp1"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp1/loo_bs_mlm.p", "rb"))
+# loos["exp1"]["PT+N complex"] = pickle.load(open("local/exp1/loo_ptn.p", "rb"))
+# loos["exp1"]["PT+N simple"] = pickle.load(open("local/exp1/loo_ptn_simple.p", "rb"))
+# loos["exp1"]["PT+N complex hier."] = pickle.load(open("local/exp1/loo_ptn_mlm.p", "rb"))
+# loos["exp1"]["PT+N simple hier."] = pickle.load(open("local/exp1/loo_ptn_mlm_simple.p", "rb"))
+# loos["exp1"]["Unrestricted BS hier."] = pickle.load(open("local/exp1/loo_ptn_mlm_simplecond.p", "rb"))
+# 
+# loos["exp2"]["Relative Freq."] = pickle.load(open("local/exp2/loo_rf.p", "rb"))
+# loos["exp2"]["Bayesian Sampler simple"] = pickle.load(open("local/exp2/loo_bs_simple.p", "rb"))
+# loos["exp2"]["Bayesian Sampler complex"] = pickle.load(open("local/exp2/loo_bs.p", "rb"))
+# loos["exp2"]["Bayesian Sampler simple hier."] = pickle.load(open("local/exp2/loo_bs_mlm_simple.p", "rb"))
+# loos["exp2"]["Bayesian Sampler complex hier."] = pickle.load(open("local/exp2/loo_bs_mlm.p", "rb"))
+# loos["exp2"]["PT+N complex"] = pickle.load(open("local/exp2/loo_ptn.p", "rb"))
+# loos["exp2"]["PT+N simple"] = pickle.load(open("local/exp2/loo_ptn_simple.p", "rb"))
+# loos["exp2"]["PT+N complex hier."] = pickle.load(open("local/exp2/loo_ptn_mlm.p", "rb"))
+# loos["exp2"]["PT+N simple hier."] = pickle.load(open("local/exp2/loo_ptn_mlm_simple.p", "rb"))
+# loos["exp2"]["Unrestricted BS hier."] = pickle.load(open("local/exp2/loo_ptn_mlm_simplecond.p", "rb"))
 ```
 
 ```{python}
-exp1_model_comparison = compare(loos["exp1"], method="BB-pseudo-BMA")
-exp2_model_comparison = compare(loos["exp2"], method="BB-pseudo-BMA")
+# exp1_model_comparison = compare(loos["exp1"], method="BB-pseudo-BMA")
+# exp2_model_comparison = compare(loos["exp2"], method="BB-pseudo-BMA")
 
-exp1_model_comparison = exp1_model_comparison >> s.mutate(Experiment = "Exp. 1", model = exp1_model_comparison.index)
-exp2_model_comparison = exp2_model_comparison >> s.mutate(Experiment = "Exp. 2", model = exp2_model_comparison.index)
+exp1_model_comparison = pd.read_csv("local/exp1/model-comparison.csv")
+exp2_model_comparison = pd.read_csv("local/exp2/model-comparison.csv")
+
+exp1_model_comparison = exp1_model_comparison >> s.mutate(Experiment = "Exp. 1", model = exp1_model_comparison["Unnamed: 0"])
+exp2_model_comparison = exp2_model_comparison >> s.mutate(Experiment = "Exp. 2", model = exp1_model_comparison["Unnamed: 0"])
 
 model_comparison = exp1_model_comparison.append(exp2_model_comparison)
 ```
@@ -185,7 +191,7 @@ plt_forest_exp2 <- py$post2 %>%
       axis.text.x = element_text(angle=90, hjust=1, vjust=.5, size=5)
       )
 
-library(patchwork)
+
 
 (plt_forest_exp1 + coord_fixed(ratio=59/.5)) + 
   (plt_forest_exp2 + coord_fixed(ratio=59/.5)) + 
@@ -205,11 +211,15 @@ plt_pp <- py$df1 %>%
     mutate(pred = py$preds2, Experiment = "Exp. 2")
   ) %>% 
   ggplot(aes(x=pred, y= estimate)) +
-  geom_point(alpha=.25) +
+  geom_abline(slope=1, intercept=0, linetype="dashed", color="grey") +
+  geom_point(alpha=.25, shape=16) +
   facet_wrap(~Experiment) +
   theme_bw() +
   theme(aspect.ratio=1) +
-  theme(panel.grid=element_blank())
+  labs(x="Predicted", y = "Observed") +
+  theme(panel.grid=element_blank()) +
+  scale_x_continuous(labels=c("0",".25",".50",".75","1")) +
+  scale_y_continuous(labels=c("0",".25",".50",".75","1")) 
 
 plt_pp
 ```
@@ -248,6 +258,10 @@ plt_ineq_exp2 <- py$df2 %>%
   gather(inequality, val, -ID,-var,-condition) %>% 
   # mutate(inequality = as.numeric(gsub("z","", inequality))) %>% 
   mutate(inequality = ordered(inequality, levels = paste0("z",1:18))) %>% 
+  mutate(
+    # condition = if_else(condition=="estimate", "Human data", "Model Pred."),
+    var = if_else(var=="estimate","Observed", "Predicted")
+    ) %>% 
   group_by(var, inequality, condition) %>% 
   summarize(
     M = mean(val),
@@ -265,7 +279,8 @@ plt_ineq_exp2 <- py$df2 %>%
 
 ```{python}
 df1_all = load_query_avg_data_exp1()
-model1_all = pickle.load(open("local/exp1/az_data_ptn_mlm_simplecond-all.p", "rb"))
+# model1_all = pickle.load(open("local/exp1/az_data_ptn_mlm_simplecond-all.p", "rb"))
+model1_all = az.from_netcdf("local/exp1/az_data_ptn_mlm_simplecond-all.nc")
 preds1_all = model1_all.posterior_predictive.mean(dim=['chain', 'draw']).yhat.to_numpy()
 ```
 
@@ -301,6 +316,10 @@ plt_ineq_exp1 <- py$df1_all %>%
   # filter(inequality %in% paste0("z",10:13)) %>% 
   # mutate(inequality = as.numeric(gsub("z","", inequality))) %>% 
   mutate(inequality = ordered(inequality, levels = paste0("z",1:18))) %>% 
+  mutate(
+    # condition = if_else(condition=="estimate", "Human data", "Model Pred."),
+    var = if_else(var=="estimate","Observed", "Predicted")
+    ) %>% 
   group_by(var, inequality, condition) %>% 
   summarize(
     M = mean(val),
@@ -329,21 +348,24 @@ plt_ineq_exp1 + labs(title="Exp. 1") +
 ```{python}
 # az_ptn_exp1 = pickle.load(open("local/az-ptn_simplecond_mlm_trial_level_disc-exp1svi.p", "rb"))
 # az_ptn_exp2 = pickle.load(open("local/az-ptn_simplecond_mlm_trial_level_disc-exp2svi.p", "rb"))
-# 
-# # posterior_ptn1 = posterior_to_df_mlm(
-# #     az_ptn_exp1, 
-# #     ["d_base_pop","d_delta_pop","d_base_sd","d_delta_sd"],
-# #     ["d_subj", "d_prime_subj", "k"]
-# # )
-# # 
-# posterior_ptn2 = posterior_to_df_mlm(
-#     az_ptn_exp2,
-#     ["d_base_pop","d_delta_pop","d_base_sd","d_delta_sd"],
-#     ["d_base_r", "d_delta_r", "d_subj", "d_prime_subj", "k"]
-# )
 
-posterior_ptn1 = pickle.load(open("local/posterior_ptn1.p", "rb"))
-posterior_ptn2 = pickle.load(open("local/posterior_ptn2.p", "rb"))
+az_ptn_exp1 = az.from_netcdf("local/az-ptn_simplecond_mlm_trial_level_disc-exp1svi.nc") # fix filenames
+az_ptn_exp2 = az.from_netcdf("local/az-ptn_simplecond_mlm_trial_level_disc-exp2svi.nc")
+
+posterior_ptn1 = posterior_to_df_mlm(
+    az_ptn_exp1,
+    ["d_base_pop","d_delta_pop","d_base_sd","d_delta_sd"],
+    ["d_subj", "d_prime_subj", "k"]
+)
+
+posterior_ptn2 = posterior_to_df_mlm(
+    az_ptn_exp2,
+    ["d_base_pop","d_delta_pop","d_base_sd","d_delta_sd"],
+    ["d_base_r", "d_delta_r", "d_subj", "d_prime_subj", "k"]
+)
+
+# posterior_ptn1 = pickle.load(open("local/posterior_ptn1.p", "rb"))
+# posterior_ptn2 = pickle.load(open("local/posterior_ptn2.p", "rb"))
 ```
 
 ```{r}
@@ -357,8 +379,8 @@ plt_dk_ptn1 <- py$posterior_ptn1 %>%
         d_ll = quantile(d_subj, .05),
         d_ul = quantile(d_subj, .95)
     ) %>% 
-#     s.filter(_.k_est < 50.) >>
-    filter(ID!=51, ID!=45, ID!=29, ID!=28) %>% 
+    filter(k_est < 100) %>%
+    # filter(ID!=51, ID!=45, ID!=29, ID!=28) %>%
     ggplot(aes(x=k_est, y=d_est)) +
     geom_point() +
     geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
@@ -401,8 +423,8 @@ plt_dprimek_ptn1 <- py$posterior_ptn1 %>%
         d_ll = quantile(d_prime_subj, .05),
         d_ul = quantile(d_prime_subj, .95)
     ) %>% 
-#     s.filter(_.k_est < 50.) >>
-    filter(ID!=51, ID!=45, ID!=29, ID!=28) %>% 
+    filter(k_est < 100) %>%
+    # filter(ID!=51, ID!=45, ID!=29, ID!=28) %>%
     ggplot(aes(x=k_est, y=d_est)) +
     geom_point() +
     geom_errorbar(aes(ymin=d_ll, ymax=d_ul), width=0., alpha=.25) +
@@ -423,7 +445,7 @@ plt_dprimek_ptn2 <- py$posterior_ptn2 %>%
         d_ll = quantile(d_prime_subj, .05),
         d_ul = quantile(d_prime_subj, .95)
     ) %>% 
-#     s.filter(_.k_est < 50.) >>
+    # s.filter(_.k_est < 50.) %>% 
     # filter(ID!=51, ID!=45, ID!=29, ID!=28) %>% 
     ggplot(aes(x=k_est, y=d_est)) +
     geom_point() +
@@ -440,6 +462,10 @@ plt_dprimek_ptn2 <- py$posterior_ptn2 %>%
 plt_dk_ptn1  + plt_dprimek_ptn1 + plt_dk_ptn2 + plt_dprimek_ptn2
 ```
 
+```{r}
+plt_dprimek_ptn1 + geom_smooth(method="lm")
+```
+
 
 
 ```{r}
@@ -452,6 +478,7 @@ plt_d_avgmodel <- py$param_posterior %>%
   mutate(Variable = if_else(Variable=="d", "d", "d'")) %>% 
   ggplot(aes(x=val, fill=Variable, color=Variable)) +
   geom_density(position="identity", alpha=.6) +
+  geom_vline(xintercept=.3333, linetype="dashed", color="grey") +
   facet_wrap(~Experiment) +
   xlim(0,.5) +
   labs(title="Participant-level query-average model")
@@ -472,6 +499,7 @@ plt_d_trialmodel <- py$posterior_ptn1 %>%
   mutate(Variable = if_else(Variable=="d", "d", "d'")) %>% 
   ggplot(aes(x=val, fill=Variable, color=Variable)) +
   geom_density(position="identity", alpha=.6) +
+  geom_vline(xintercept=.3333, linetype="dashed", color="grey") +
   facet_wrap(~Experiment) +
   xlim(0,.5) +
   labs(title="Trial-level model")

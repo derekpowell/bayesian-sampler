@@ -11,7 +11,7 @@
       \node[latent, above=of d_prime]  (delta_delta) {$\Delta\delta_j$};
       \node[latent, left=1cm of mu]            (p) {$\vec{\theta}_{jk}$};
       \node[latent, above=1cm of y]  (theta) {$\vec{p}_{ijk}$};
-      \node[latent, left=1cm of theta]  (kappa) {$\kappa_j$};
+      \node[latent, left=1cm of theta]  (N) {$N_j$};
       \node[latent, above=of delta, xshift=-.5cm]  (delta_pop) {$\overline{\delta}$};
       \node[latent, above=of delta_delta, xshift=-.5cm]  (delta_delta_pop) {$\overline{\Delta\delta}$};
       \node[latent, above=of delta, xshift=.5cm]  (sigma_delta) {$\sigma_{\delta}$};
@@ -28,7 +28,7 @@
       \edge {delta_delta_pop} {delta_delta}
       \edge {sigma_delta} {delta}
       \edge {sigma_delta_delta} {delta_delta}
-      \edge {mu, phi, kappa} {theta}
+      \edge {mu, phi, N} {theta}
     
       % Plates
       {
@@ -38,7 +38,7 @@
      }
       {
         \tikzset{plate caption/.append style={above right=0pt of #1.north east}};
-        \plate[inner sep=0.25cm, xshift=-.12cm, yshift=-.12cm] {plateJ} {(mu)(y)(p)(d)(d_prime)(delta)(delta_delta)(kappa)} {$j$} ;
+        \plate[inner sep=0.25cm, xshift=-.12cm, yshift=-.12cm] {plateJ} {(mu)(y)(p)(d)(d_prime)(delta)(delta_delta)(N)} {$j$} ;
       }
       {
         \tikzset{plate caption/.append style={above right=0pt and 0pt of #1.north west}};
@@ -54,7 +54,7 @@
     $
 \begin{aligned}[c]
   y_{ijk} &\sim Categorical(\overrightarrow{\theta_{ijk}}) \\
-  \overrightarrow{p_{ijk}} &= Z_{NB}(\mu_{ijk},\kappa_j, \phi) \\
+  \overrightarrow{p_{ijk}} &= Z_{NB}(\mu_{ijk},N_j, \phi) \\
   \mu_{ijk} &= f_{NB}(\overrightarrow{\theta_{jk}}, d_j, d'_j, x_{ijk})  \\
   d_j &= \frac{1}{2} \ \text{logistic}(\delta_j) \\
   d_j’ &= \frac{1}{2} \ \text{logistic}\big(\delta_j + \exp(\Delta\delta_j)\big) \\
@@ -65,6 +65,7 @@
   log(\sigma_{\beta}) &\sim Normal(-1, .5) \\
   \overrightarrow{\theta_{jk}} &\sim Dirichlet_4(\overrightarrow{1}) \\
   \overrightarrow{\phi} &\sim Dirichlet_3(\overrightarrow{1}) \\
+  N_j &\sim Cauchy(20) \\
 \end{aligned}
 $
   \end{minipage}
