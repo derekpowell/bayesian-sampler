@@ -23,7 +23,7 @@ def p_to_ptn(p, d):
 
 def sim_bayes_samp_trial(prob, beta, N):
     # p = dist.Beta(prob*N, (1-prob)*N).sample(PRNGKey(0), )
-    p = np.random.beta(1+prob*N, 1+(1-prob)*N, size=len(prob)) # updated 9/13/22, 3:48 PM
+    p = np.random.beta(prob*N, (1-prob)*N, size=len(prob)) # updated 12/2/22, 2:39 PM
     res = (p * N + beta)/(N + 2.*beta)
     return np.asarray(res)
 
@@ -34,7 +34,7 @@ def sim_ptn_samp_trial(prob, d, N):
 #     res = S/np.round(N).astype("int")
     # updated 9/13/22, 3:49 PM
     prob = (1-2*d)*prob + d
-    res = np.random.beta(1+prob*N, 1+(1-prob)*N, size=len(prob))
+    res = np.random.beta(prob*N, (1-prob)*N, size=len(prob)) # updated 12/2/22, 2:39 PM
     return np.asarray(res)
 
 

@@ -621,8 +621,8 @@ def bs_dist_cdf(N, beta, a, b, x):
 
 def f_bs(mu, N, beta, responses):
     
-    a = mu*N + 1.  # updated 9/6/22, 4:20 PM
-    b = (1.-mu)*N + 1.
+    a = mu*N  ## updated 12/2/22, 2:39 PM 
+    b = (1.-mu)*N 
     
     n_resps = (responses.shape[0]-1)
     step = int(20/n_resps)
@@ -639,8 +639,8 @@ def f_bs(mu, N, beta, responses):
 
 def f(mu, k, responses):
     
-    a = mu*k + 1. # 8/26/22, 5:38 PM new PTN version
-    b = (1.-mu)*k + 1.
+    a = mu*k # updated 12/2/22, 2:39 PM 
+    b = (1.-mu)*k # updated 12/2/22, 2:39 PM 
     
     n_resps = (responses.shape[0]-1)
     step = int(20/n_resps)
